@@ -83,6 +83,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
+  align-items: stretch;
 }
 
 .card {
@@ -165,7 +166,7 @@
 .seats-ok { color: var(--ev-success); }
 .seats-out { color: var(--ev-danger); font-weight: 600; }
 
-.card-cta { margin-top: 12px; }
+.card-cta { margin-top: auto; }
 
 @media (max-width: 600px) {
   .hero { padding: 48px 0 32px; }
