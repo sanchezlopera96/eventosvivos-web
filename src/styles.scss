@@ -1,18 +1,18 @@
 @use '@angular/material' as mat;
 
 // ===========================================================================
-// EventosVivos — sistema de diseño (identidad Ceiba)
+// EventosVivos — sistema de diseño
 // Teal oscuro profundo + acento verde menta. Estetica tecnologica, sobria.
 // ===========================================================================
 
 :root {
-  // Paleta (derivada de la identidad visual de Ceiba)
+  // Paleta (teal oscuro + verde menta)
   --ev-bg: #0a1c1a;            // teal casi negro
   --ev-bg-2: #0c211e;
   --ev-surface: #102b27;      // tarjetas
   --ev-surface-2: #16382f;    // hover / elevacion
   --ev-border: #1e463d;
-  --ev-primary: #4ecca3;      // verde menta (botones Ceiba)
+  --ev-primary: #4ecca3;      // verde menta
   --ev-primary-soft: #6fe0bc;
   --ev-primary-strong: #3fb389;
   --ev-accent: #4ecca3;
@@ -64,7 +64,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-// Fondo con degradado sutil + textura de "red" tecnologica (guino a Ceiba)
+// Fondo con degradado sutil + textura de "red" tecnologica
 body {
   background:
     radial-gradient(1100px 560px at 82% -8%, rgba(78, 204, 163, 0.14), transparent 60%),

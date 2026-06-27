@@ -8,6 +8,7 @@ import {
   CreateEventRequest,
   CreateReservationRequest,
   CreatedResponse,
+  EventDetail,
   EventListItem,
   OccupancyReport,
 } from '../models/event.models';
@@ -38,6 +39,10 @@ export class EventApiService {
     if (filters.title) params = params.set('title', filters.title);
 
     return this.http.get<EventListItem[]>(`${this.base}/api/events`, { params });
+  }
+
+  getEvent(id: string): Observable<EventDetail> {
+    return this.http.get<EventDetail>(`${this.base}/api/events/${id}`);
   }
 
   getOccupancy(eventId: string): Observable<OccupancyReport> {

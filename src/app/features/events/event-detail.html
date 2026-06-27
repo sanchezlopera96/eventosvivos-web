@@ -1,0 +1,124 @@
+<main class="ev-container detail">
+  <a routerLink="/" class="back">
+    <mat-icon>arrow_back</mat-icon> Volver a eventos
+  </a>
+
+  @if (loading()) {
+    <div class="state">
+      <mat-spinner diameter="42"></mat-spinner>
+      <p>Cargando evento…</p>
+    </div>
+  } @else if (error()) {
+    <div class="state state-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error() }}</p>
+      <a mat-stroked-button routerLink="/">Ver todos los eventos</a>
+    </div>
+  } @else if (event(); as e) {
+    <div class="layout">
+      <!-- Columna principal -->
+      <article class="main">
+        <div class="badges">
+          <span class="badge" [class]="typeClass(e.type)">{{ typeLabel(e.type) }}</span>
+          @if (!isActive()) {
+            <span class="badge badge-status">{{ statusLabel(e.status) }}</span>
+          }
+        </div>
+
+        <h1>{{ e.title }}</h1>
+
+        <div class="facts">
+          <span><mat-icon>place</mat-icon>{{ venueName(e.venueId) }}</span>
+          <span><mat-icon>schedule</mat-icon>{{ e.startsAt | date:'EEEE d MMMM, HH:mm' }}</span>
+          <span><mat-icon>confirmation_number</mat-icon>{{ e.price | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+
+        <section class="description">
+          <h2>Sobre el evento</h2>
+          <p>{{ e.description }}</p>
+        </section>
+
+        <section class="occupancy">
+          <div class="occ-head">
+            <span>Ocupación</span>
+            <span>{{ occupancyPct() }}%</span>
+          </div>
+          <div class="occ-bar"><div class="occ-fill" [style.width.%]="occupancyPct()"></div></div>
+          <p class="occ-note">
+            @if (soldOut()) {
+              Sin cupos disponibles.
+            } @else {
+              {{ e.availableSeats }} de {{ e.capacity }} cupos disponibles.
+            }
+          </p>
+        </section>
+      </article>
+
+      <!-- Panel de reserva -->
+      <aside class="reserve-panel">
+        @if (reserve(); as r) {
+          @if (r.kind === 'success') {
+          <div class="reserve-success">
+            <mat-icon>check_circle</mat-icon>
+            <h3>¡Reserva creada!</h3>
+            <p>Tu reserva quedó en estado pendiente de pago. Guarda este localizador:</p>
+            <code>{{ r.reservationId }}</code>
+            <p class="hint">Con él podrás confirmar el pago o cancelar tu reserva.</p>
+            <button mat-stroked-button (click)="resetReservation()">Hacer otra reserva</button>
+          </div>
+            } @else if (soldOut() || !isActive()) {
+          <div class="reserve-blocked">
+            <mat-icon>block</mat-icon>
+            <p>
+              @if (soldOut()) { Este evento está agotado. }
+              @else { Este evento no admite reservas. }
+            </p>
+          </div>
+          } @else {
+          <h3>Reserva tu lugar</h3>
+          <p class="panel-sub">Asegura tu entrada antes de que se agote.</p>
+
+          <form [formGroup]="form" (ngSubmit)="submitReservation()">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre completo</mat-label>
+              <input matInput formControlName="buyerName" autocomplete="name">
+              @if (form.controls.buyerName.touched && form.controls.buyerName.invalid) {
+                <mat-error>Ingresa tu nombre (mínimo 3 caracteres).</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Correo electrónico</mat-label>
+              <input matInput formControlName="buyerEmail" autocomplete="email">
+              @if (form.controls.buyerEmail.touched && form.controls.buyerEmail.invalid) {
+                <mat-error>Ingresa un correo válido.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Cantidad de entradas</mat-label>
+              <input matInput type="number" formControlName="quantity" min="1" max="10">
+              @if (form.controls.quantity.touched && form.controls.quantity.invalid) {
+                <mat-error>Entre 1 y 10 entradas.</mat-error>
+              }
+            </mat-form-field>
+
+            @if (r.kind === 'error') {
+              <p class="form-error">
+                <mat-icon>error_outline</mat-icon>
+                {{ r.message }}
+              </p>
+            }
+
+            <button mat-flat-button color="primary" type="submit"
+                    [disabled]="r.kind === 'submitting'" class="submit">
+              @if (r.kind === 'submitting') { Reservando… }
+              @else { Reservar ahora }
+            </button>
+          </form>
+          }
+        }
+      </aside>
+    </div>
+  }
+</main>

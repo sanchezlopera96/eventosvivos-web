@@ -30,6 +30,11 @@ export interface EventListItem {
   availableSeats: number;
 }
 
+// Detalle de un evento (incluye la descripción completa).
+export interface EventDetail extends EventListItem {
+  description: string;
+}
+
 export interface OccupancyReport {
   eventId: string;
   title: string;
