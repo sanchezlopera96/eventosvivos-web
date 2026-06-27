@@ -1,0 +1,100 @@
+<header class="hero">
+  <div class="ev-container hero-inner">
+    <p class="eyebrow">EventosVivos</p>
+    <h1>Cultura en vivo, sin colas ni sorpresas.</h1>
+    <p class="lead">
+      Conciertos, talleres y conferencias. Reserva tu lugar y asegura tu entrada
+      antes de que se agote el aforo.
+    </p>
+  </div>
+</header>
+
+<main class="ev-container content">
+  <!-- Filtros -->
+  <section class="filters" aria-label="Filtros de eventos">
+    <mat-form-field appearance="outline" class="f-grow">
+      <mat-label>Buscar por título</mat-label>
+      <input matInput [ngModel]="filterTitle()" (ngModelChange)="filterTitle.set($event)"
+             (keyup.enter)="load()" placeholder="Ej: Festival de jazz">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo</mat-label>
+      <mat-select [ngModel]="filterType()" (ngModelChange)="filterType.set($event)">
+        <mat-option [value]="null">Todos</mat-option>
+        @for (opt of typeOptions; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Sede</mat-label>
+      <mat-select [ngModel]="filterVenue()" (ngModelChange)="filterVenue.set($event)">
+        <mat-option [value]="null">Todas</mat-option>
+        @for (opt of venueOptions; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="filter-actions">
+      <button mat-flat-button color="primary" (click)="load()">Aplicar</button>
+      <button mat-button (click)="clearFilters()">Limpiar</button>
+    </div>
+  </section>
+
+  <!-- Estados -->
+  @if (loading()) {
+    <div class="state">
+      <mat-spinner diameter="42"></mat-spinner>
+      <p>Cargando eventos…</p>
+    </div>
+  } @else if (error()) {
+    <div class="state state-error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ error() }}</p>
+      <button mat-stroked-button (click)="load()">Reintentar</button>
+    </div>
+  } @else if (!hasEvents()) {
+    <div class="state">
+      <mat-icon>event_busy</mat-icon>
+      <p>No hay eventos que coincidan. Prueba a quitar algún filtro.</p>
+    </div>
+  } @else {
+    <section class="grid">
+      @for (event of events(); track event.id) {
+        <article class="card" [class.is-soldout]="soldOut(event)">
+          <div class="card-stripe" [class]="typeClass(event.type)"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="badge" [class]="typeClass(event.type)">{{ typeLabel(event.type) }}</span>
+              <span class="price">{{ event.price | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+
+            <h3 class="card-title">{{ event.title }}</h3>
+
+            <p class="meta">
+              <mat-icon>place</mat-icon>{{ venueName(event.venueId) }}
+            </p>
+            <p class="meta">
+              <mat-icon>schedule</mat-icon>{{ event.startsAt | date:'EEE d MMM, HH:mm' }}
+            </p>
+
+            <div class="seats">
+              @if (soldOut(event)) {
+                <span class="seats-out">Agotado</span>
+              } @else {
+                <span class="seats-ok">{{ event.availableSeats }} cupos disponibles</span>
+              }
+            </div>
+
+            <a mat-flat-button color="primary" [routerLink]="['/events', event.id]"
+               class="card-cta">Ver detalle</a>
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

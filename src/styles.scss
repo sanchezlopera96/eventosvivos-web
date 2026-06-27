@@ -1,39 +1,97 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+// ===========================================================================
+// EventosVivos — sistema de diseño (identidad Ceiba)
+// Teal oscuro profundo + acento verde menta. Estetica tecnologica, sobria.
+// ===========================================================================
+
+:root {
+  // Paleta (derivada de la identidad visual de Ceiba)
+  --ev-bg: #0a1c1a;            // teal casi negro
+  --ev-bg-2: #0c211e;
+  --ev-surface: #102b27;      // tarjetas
+  --ev-surface-2: #16382f;    // hover / elevacion
+  --ev-border: #1e463d;
+  --ev-primary: #4ecca3;      // verde menta (botones Ceiba)
+  --ev-primary-soft: #6fe0bc;
+  --ev-primary-strong: #3fb389;
+  --ev-accent: #4ecca3;
+  --ev-text: #e8f3ef;
+  --ev-text-dim: #9bbdb2;
+  --ev-text-faint: #5f8478;
+  --ev-danger: #ff6b6b;
+  --ev-success: #4ecca3;
+
+  // Colores por tipo de evento (franja en la tarjeta)
+  --ev-type-conferencia: #4dd0c4; // turquesa
+  --ev-type-taller: #7bd88f;      // verde claro
+  --ev-type-concierto: #4ecca3;   // menta
+
+  // Tipografia
+  --ev-font-display: 'Space Grotesk', system-ui, sans-serif;
+  --ev-font-body: 'Inter', system-ui, sans-serif;
+
+  // Radios y sombras
+  --ev-radius: 14px;
+  --ev-radius-sm: 10px;
+  --ev-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
 html {
-  height: 100%;
-  @include mat.theme(
-    (
-      color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
-      ),
-      typography: Roboto,
-      density: 0,
-    )
-  );
+  color-scheme: dark;
+  @include mat.theme((
+    color: (
+      primary: mat.$green-palette,
+      tertiary: mat.$spring-green-palette,
+      theme-type: dark,
+    ),
+    typography: (
+      brand-family: 'Space Grotesk',
+      plain-family: 'Inter',
+    ),
+    density: 0,
+  ));
 }
 
-body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
+* { box-sizing: border-box; }
 
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
+html, body {
   margin: 0;
-  height: 100%;
+  min-height: 100%;
+  background: var(--ev-bg);
+  color: var(--ev-text);
+  font-family: var(--ev-font-body);
+  -webkit-font-smoothing: antialiased;
 }
-/* You can add global styles to this file, and also import other style files */
+
+// Fondo con degradado sutil + textura de "red" tecnologica (guino a Ceiba)
+body {
+  background:
+    radial-gradient(1100px 560px at 82% -8%, rgba(78, 204, 163, 0.14), transparent 60%),
+    radial-gradient(820px 460px at 0% 0%, rgba(78, 204, 163, 0.06), transparent 55%),
+    var(--ev-bg);
+  background-attachment: fixed;
+}
+
+h1, h2, h3 {
+  font-family: var(--ev-font-display);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+a { color: var(--ev-primary-soft); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.ev-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 600px) {
+  .ev-container { padding: 0 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
