@@ -8,8 +8,10 @@ import {
   CreateEventRequest,
   CreateReservationRequest,
   CreatedResponse,
+  EventDetail,
   EventListItem,
   OccupancyReport,
+  ReservationDetail,
 } from '../models/event.models';
 
 export interface EventFilters {
@@ -40,12 +42,27 @@ export class EventApiService {
     return this.http.get<EventListItem[]>(`${this.base}/api/events`, { params });
   }
 
+  getEvent(id: string): Observable<EventDetail> {
+    return this.http.get<EventDetail>(`${this.base}/api/events/${id}`);
+  }
+
   getOccupancy(eventId: string): Observable<OccupancyReport> {
     return this.http.get<OccupancyReport>(`${this.base}/api/events/${eventId}/occupancy`);
   }
 
+  getReservation(id: string): Observable<ReservationDetail> {
+    return this.http.get<ReservationDetail>(`${this.base}/api/reservations/${id}`);
+  }
+
   createReservation(body: CreateReservationRequest): Observable<CreatedResponse> {
     return this.http.post<CreatedResponse>(`${this.base}/api/reservations`, body);
+  }
+
+  // Confirmar pago y cancelar son operaciones publicas: el localizador
+  // (id de la reserva) actua como llave de acceso a esa reserva.
+  confirmPayment(reservationId: string): Observable<ConfirmPaymentResponse> {
+    return this.http.post<ConfirmPaymentResponse>(
+      `${this.base}/api/reservations/${reservationId}/confirm`, {});
   }
 
   cancelReservation(reservationId: string): Observable<CancelReservationResponse> {
@@ -65,12 +82,6 @@ export class EventApiService {
     return this.http.post(`${this.base}/api/events/${eventId}/cancel`, {}, {
       headers: this.adminHeaders(apiKey),
     });
-  }
-
-  confirmPayment(reservationId: string, apiKey: string): Observable<ConfirmPaymentResponse> {
-    return this.http.post<ConfirmPaymentResponse>(
-      `${this.base}/api/reservations/${reservationId}/confirm`, {},
-      { headers: this.adminHeaders(apiKey) });
   }
 
   private adminHeaders(apiKey: string): HttpHeaders {

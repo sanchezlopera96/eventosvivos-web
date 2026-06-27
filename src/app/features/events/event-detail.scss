@@ -1,0 +1,158 @@
+:host { display: block; padding: 32px 0 64px; }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ev-text-dim);
+  margin-bottom: 24px;
+  font-size: 0.92rem;
+}
+.back:hover { color: var(--ev-primary); text-decoration: none; }
+.back mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+// --- Estados ---
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 80px 20px;
+  color: var(--ev-text-dim);
+  text-align: center;
+}
+.state mat-icon { font-size: 44px; width: 44px; height: 44px; color: var(--ev-text-faint); }
+.state-error mat-icon { color: var(--ev-danger); }
+
+// --- Layout en dos columnas ---
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  align-items: start;
+}
+
+.badges { display: flex; gap: 8px; margin-bottom: 14px; }
+.badge {
+  font-family: var(--ev-font-display);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--ev-surface-2);
+  color: var(--ev-text-dim);
+}
+.badge.type-conferencia { color: var(--ev-type-conferencia); }
+.badge.type-taller { color: var(--ev-type-taller); }
+.badge.type-concierto { color: var(--ev-type-concierto); }
+.badge-status { background: transparent; border: 1px solid var(--ev-border); }
+
+.main h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1.1;
+  color: var(--ev-text);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin: 18px 0 28px;
+}
+.facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ev-text-dim);
+}
+.facts mat-icon { font-size: 19px; width: 19px; height: 19px; color: var(--ev-primary); }
+
+.description h2,
+.occupancy + * h2 { font-size: 1.15rem; margin-bottom: 10px; color: var(--ev-text); }
+.description h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.description p { color: var(--ev-text-dim); line-height: 1.6; margin: 0 0 28px; }
+
+// --- Ocupación ---
+.occupancy { max-width: 520px; }
+.occ-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--ev-text-dim);
+  margin-bottom: 8px;
+}
+.occ-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ev-surface-2);
+  overflow: hidden;
+}
+.occ-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ev-primary-strong), var(--ev-primary));
+  transition: width 0.4s ease;
+}
+.occ-note { font-size: 0.85rem; color: var(--ev-text-faint); margin-top: 8px; }
+
+// --- Panel de reserva ---
+.reserve-panel {
+  position: sticky;
+  top: 24px;
+  background: var(--ev-surface);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius);
+  padding: 24px;
+}
+.reserve-panel h3 { font-size: 1.3rem; color: var(--ev-text); }
+.panel-sub { color: var(--ev-text-dim); font-size: 0.9rem; margin: 6px 0 18px; }
+
+.reserve-panel form { display: flex; flex-direction: column; gap: 4px; }
+.reserve-panel mat-form-field { width: 100%; }
+.submit { margin-top: 8px; height: 46px; font-size: 1rem; }
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ev-danger);
+  font-size: 0.85rem;
+  margin: 4px 0 8px;
+}
+.form-error mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+// Éxito / bloqueado
+.reserve-success, .reserve-blocked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+.reserve-success mat-icon {
+  font-size: 48px; width: 48px; height: 48px; color: var(--ev-success);
+}
+.reserve-blocked mat-icon {
+  font-size: 40px; width: 40px; height: 40px; color: var(--ev-text-faint);
+}
+.reserve-success h3 { color: var(--ev-text); }
+.reserve-success p { color: var(--ev-text-dim); font-size: 0.9rem; margin: 0; }
+.reserve-success code {
+  display: block;
+  width: 100%;
+  background: var(--ev-bg);
+  border: 1px dashed var(--ev-border);
+  border-radius: var(--ev-radius-sm);
+  padding: 12px;
+  font-size: 0.82rem;
+  color: var(--ev-primary-soft);
+  word-break: break-all;
+}
+.reserve-success .hint { font-size: 0.8rem; color: var(--ev-text-faint); }
+.reserve-success button { margin-top: 6px; }
+
+// --- Responsive ---
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .reserve-panel { position: static; }
+}
