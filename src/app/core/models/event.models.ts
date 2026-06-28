@@ -17,6 +17,25 @@ export const EVENT_STATUS_LABELS: Record<number, string> = {
   2: 'Completado',
 };
 
+export const RESERVATION_STATUS_LABELS: Record<number, string> = {
+  0: 'Pendiente de pago',
+  1: 'Confirmada',
+  2: 'Cancelada',
+};
+
+// Detalle de una reserva (del endpoint GET /reservations/{id}).
+export interface ReservationDetail {
+  id: string;
+  eventId: string;
+  buyerName: string;
+  buyerEmail: string;
+  quantity: number;
+  status: number;        // 0 Pendiente, 1 Confirmada, 2 Cancelada
+  code: string | null;   // EV-###### si está confirmada
+  createdAt: string;
+  confirmedAt: string | null;
+}
+
 export interface EventListItem {
   id: string;
   title: string;
@@ -28,6 +47,11 @@ export interface EventListItem {
   price: number;
   capacity: number;
   availableSeats: number;
+}
+
+// Detalle de un evento (incluye la descripción completa).
+export interface EventDetail extends EventListItem {
+  description: string;
 }
 
 export interface OccupancyReport {

@@ -1,0 +1,83 @@
+<main class="ev-container manage">
+  <a routerLink="/" class="back"><mat-icon>arrow_back</mat-icon> Volver a eventos</a>
+
+  <header class="head">
+    <h1>Gestiona tu reserva</h1>
+    <p>Ingresa tu localizador para ver el estado, confirmar el pago o cancelar.</p>
+  </header>
+
+  <section class="search-box">
+    <mat-form-field appearance="outline" class="grow">
+      <mat-label>Localizador de la reserva</mat-label>
+      <input matInput [ngModel]="locator()" (ngModelChange)="locator.set($event)"
+             (keyup.enter)="search()" placeholder="Ej: 6c6313c0-461d-4990-b123-2f0b0a9cf83d">
+    </mat-form-field>
+    <button mat-flat-button color="primary" (click)="search()" [disabled]="loading()">
+      Buscar
+    </button>
+  </section>
+
+  @if (loading()) {
+    <div class="state"><mat-spinner diameter="40"></mat-spinner><p>Buscando…</p></div>
+  } @else if (loadError()) {
+    <div class="state state-error">
+      <mat-icon>search_off</mat-icon>
+      <p>{{ loadError() }}</p>
+    </div>
+  } @else if (reservation(); as r) {
+    <article class="card">
+      <div class="card-head">
+        <span class="status" [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</span>
+        @if (r.code) { <span class="code">{{ r.code }}</span> }
+      </div>
+
+      <dl class="facts">
+        <div><dt>Comprador</dt><dd>{{ r.buyerName }}</dd></div>
+        <div><dt>Correo</dt><dd>{{ r.buyerEmail }}</dd></div>
+        <div><dt>Entradas</dt><dd>{{ r.quantity }}</dd></div>
+        <div><dt>Creada</dt><dd>{{ r.createdAt | date:'d MMM y, HH:mm' }}</dd></div>
+        @if (r.confirmedAt) {
+          <div><dt>Confirmada</dt><dd>{{ r.confirmedAt | date:'d MMM y, HH:mm' }}</dd></div>
+        }
+      </dl>
+
+      <!-- Resultado de una acción -->
+      @if (action(); as a) {
+        @if (a.kind === 'confirmed') {
+          <p class="result ok">
+            <mat-icon>check_circle</mat-icon>
+            ¡Pago confirmado! Tu código de entrada es <strong>{{ a.code }}</strong>.
+          </p>
+        } @else if (a.kind === 'cancelled') {
+          <p class="result ok">
+            <mat-icon>check_circle</mat-icon>
+            Reserva cancelada.
+          </p>
+        } @else if (a.kind === 'error') {
+          <p class="result err"><mat-icon>error_outline</mat-icon>{{ a.message }}</p>
+        }
+
+        <!-- Acciones según estado (confirmar pago es accion de administracion) -->
+        <div class="actions">
+          @if (isPending()) {
+            <p class="muted">
+              Tu reserva está pendiente de pago. El organizador confirmará el pago
+              para emitir tu código de entrada.
+            </p>
+            <button mat-stroked-button
+                    [disabled]="a.kind === 'working'" (click)="cancel()">
+              Cancelar reserva
+            </button>
+          } @else if (isConfirmed()) {
+            <button mat-stroked-button
+                    [disabled]="a.kind === 'working'" (click)="cancel()">
+              Cancelar reserva
+            </button>
+          } @else if (isCancelled()) {
+            <p class="muted">Esta reserva está cancelada. No hay acciones disponibles.</p>
+          }
+        </div>
+      }
+    </article>
+  }
+</main>

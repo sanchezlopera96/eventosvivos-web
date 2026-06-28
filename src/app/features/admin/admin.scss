@@ -1,0 +1,68 @@
+:host { display: block; padding: 32px 0 64px; }
+
+.back {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ev-text-dim); margin-bottom: 24px; font-size: 0.92rem;
+}
+.back:hover { color: var(--ev-primary); text-decoration: none; }
+.back mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+.head { margin-bottom: 24px; }
+.head h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); color: var(--ev-text); }
+.head p { color: var(--ev-text-dim); margin-top: 8px; }
+
+.keybar {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--ev-surface);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius);
+  padding: 16px 20px 0;
+  margin-bottom: 28px;
+}
+.keybar .grow { flex: 1; }
+.key-ok {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ev-success); font-size: 0.88rem; padding-bottom: 18px;
+}
+.key-ok mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+.grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
+.side { display: flex; flex-direction: column; gap: 24px; }
+
+.panel {
+  background: var(--ev-surface);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius);
+  padding: 24px;
+}
+.panel h2 { font-size: 1.3rem; color: var(--ev-text); margin-bottom: 4px; }
+.sub { color: var(--ev-text-dim); font-size: 0.88rem; margin: 0 0 16px; }
+
+.panel form { display: flex; flex-direction: column; gap: 2px; }
+.panel mat-form-field { width: 100%; }
+.row { display: flex; gap: 12px; }
+.row mat-form-field { flex: 1; }
+
+.panel button { margin-top: 8px; align-self: flex-start; }
+
+.msg { font-size: 0.88rem; margin: 4px 0 8px; padding: 10px 12px; border-radius: var(--ev-radius-sm); word-break: break-all; }
+.msg.ok { background: rgba(78, 204, 163, 0.12); color: var(--ev-success); }
+.msg.err { background: rgba(255, 107, 107, 0.12); color: var(--ev-danger); }
+
+.report {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ev-border);
+}
+.report h3 { color: var(--ev-text); font-size: 1.05rem; margin-bottom: 12px; }
+.report dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
+.report dt { font-size: 0.74rem; color: var(--ev-text-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+.report dd { margin: 2px 0 0; color: var(--ev-text); font-weight: 600; }
+
+@media (max-width: 860px) {
+  .grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .row { flex-direction: column; gap: 2px; }
+  .keybar { flex-direction: column; align-items: stretch; }
+}
