@@ -58,11 +58,12 @@ export class EventApiService {
     return this.http.post<CreatedResponse>(`${this.base}/api/reservations`, body);
   }
 
-  // Confirmar pago y cancelar son operaciones publicas: el localizador
-  // (id de la reserva) actua como llave de acceso a esa reserva.
-  confirmPayment(reservationId: string): Observable<ConfirmPaymentResponse> {
+  // Cancelar es publico (el localizador es la llave). Confirmar el pago es
+  // una accion de administracion: requiere la API key del organizador.
+  confirmPayment(reservationId: string, apiKey: string): Observable<ConfirmPaymentResponse> {
     return this.http.post<ConfirmPaymentResponse>(
-      `${this.base}/api/reservations/${reservationId}/confirm`, {});
+      `${this.base}/api/reservations/${reservationId}/confirm`, {},
+      { headers: this.adminHeaders(apiKey) });
   }
 
   cancelReservation(reservationId: string): Observable<CancelReservationResponse> {

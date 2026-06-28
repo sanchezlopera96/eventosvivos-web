@@ -25,5 +25,11 @@ export const routes: Routes = [
       import('./features/reservations/reservation-manage').then((m) => m.ReservationManageComponent),
     title: 'EventosVivos — Gestionar reserva',
   },
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./features/admin/admin').then((m) => m.AdminComponent),
+    title: 'EventosVivos — Administración',
+  },
   { path: '**', redirectTo: '' },
 ];

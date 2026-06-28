@@ -41,6 +41,24 @@
   font-size: 1.05rem;
   max-width: 56ch;
 }
+.hero-nav {
+  display: flex;
+  gap: 20px;
+  margin-top: 24px;
+}
+.hero-nav a {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ev-text-dim);
+  font-size: 0.92rem;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+}
+.hero-nav a:hover {
+  color: var(--ev-primary);
+  border-bottom-color: var(--ev-primary);
+  text-decoration: none;
+}
 
 // --- Filtros ---
 .content { margin-top: 36px; }
