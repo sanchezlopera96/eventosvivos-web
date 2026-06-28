@@ -55,6 +55,13 @@ export class EventApiService {
     return this.http.get<ReservationDetail>(`${this.base}/api/reservations/${id}`);
   }
 
+  // Busca las reservas asociadas a un correo (publico).
+  searchReservationsByEmail(email: string): Observable<ReservationListItem[]> {
+    const params = new HttpParams().set('email', email);
+    return this.http.get<ReservationListItem[]>(
+      `${this.base}/api/reservations/by-email`, { params });
+  }
+
   createReservation(body: CreateReservationRequest): Observable<CreatedResponse> {
     return this.http.post<CreatedResponse>(`${this.base}/api/reservations`, body);
   }

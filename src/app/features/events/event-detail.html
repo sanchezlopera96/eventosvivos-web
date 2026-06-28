@@ -61,11 +61,12 @@
           <div class="reserve-success">
             <mat-icon>check_circle</mat-icon>
             <h3>¡Reserva creada!</h3>
-            <p>Tu reserva quedó en estado pendiente de pago. Guarda este localizador:</p>
-            <code>{{ r.reservationId }}</code>
-            <p class="hint">Con él podrás confirmar el pago o cancelar tu reserva.</p>
+            <p>Tu reserva quedó en estado pendiente de pago. El organizador
+               confirmará el pago para emitir tu código de entrada.</p>
+            <p class="hint">Podrás ver y gestionar tus reservas con tu correo
+               en cualquier momento.</p>
             <a mat-flat-button color="primary"
-               [routerLink]="['/reservations/manage', r.reservationId]">Gestionar mi reserva</a>
+               routerLink="/reservations/manage">Ver mis reservas</a>
             <button mat-stroked-button (click)="resetReservation()">Hacer otra reserva</button>
           </div>
             } @else if (soldOut() || !isActive()) {
