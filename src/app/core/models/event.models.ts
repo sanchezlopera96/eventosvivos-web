@@ -36,6 +36,19 @@ export interface ReservationDetail {
   confirmedAt: string | null;
 }
 
+// Item de la lista de reservas (del endpoint GET /reservations).
+export interface ReservationListItem {
+  id: string;
+  eventId: string;
+  eventTitle: string;
+  buyerName: string;
+  buyerEmail: string;
+  quantity: number;
+  status: number;
+  code: string | null;
+  createdAt: string;
+}
+
 export interface EventListItem {
   id: string;
   title: string;

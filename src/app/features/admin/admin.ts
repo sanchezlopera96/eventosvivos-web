@@ -1,7 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,27 +9,32 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 
 import { EventApiService } from '../../core/services/event-api.service';
-import { VENUES } from '../../core/models/event.models';
-import { OccupancyReport } from '../../core/models/event.models';
+import { AuthService } from '../../core/auth/auth.service';
+import {
+  EVENT_TYPE_LABELS,
+  EventListItem,
+  OccupancyReport,
+  RESERVATION_STATUS_LABELS,
+  ReservationListItem,
+  VENUES,
+} from '../../core/models/event.models';
 
 type Msg = { kind: 'ok' | 'err'; text: string } | null;
 
 @Component({
   selector: 'app-admin',
   imports: [
-    RouterLink, CurrencyPipe, ReactiveFormsModule, FormsModule,
+    RouterLink, CurrencyPipe, DatePipe, ReactiveFormsModule,
     MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatIconModule,
   ],
   templateUrl: './admin.html',
   styleUrl: './admin.scss',
 })
-export class AdminComponent {
+export class AdminComponent implements OnInit {
   private readonly api = inject(EventApiService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
-
-  // API key del organizador (en memoria, no se persiste).
-  readonly apiKey = signal('');
-  readonly hasKey = computed(() => this.apiKey().trim().length > 0);
 
   readonly venueOptions = Object.entries(VENUES).map(([id, name]) => ({
     value: Number(id), label: name,
@@ -40,7 +45,22 @@ export class AdminComponent {
     { value: 2, label: 'Concierto' },
   ];
 
-  // --- Crear evento ---
+  // --- Eventos (para el reporte de ocupación) ---
+  readonly events = signal<EventListItem[]>([]);
+  readonly loadingEvents = signal(false);
+  readonly selectedReport = signal<OccupancyReport | null>(null);
+  readonly loadingReport = signal(false);
+
+  // --- Pagos pendientes ---
+  readonly pending = signal<ReservationListItem[]>([]);
+  readonly loadingPending = signal(false);
+  readonly confirmingId = signal<string | null>(null);
+  readonly pendingMsg = signal<Msg>(null);
+
+  // --- Modal crear evento ---
+  readonly modalOpen = signal(false);
+  readonly creating = signal(false);
+  readonly createMsg = signal<Msg>(null);
   readonly eventForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
     description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
@@ -51,24 +71,82 @@ export class AdminComponent {
     price: [50, [Validators.required, Validators.min(0.01)]],
     type: [2, [Validators.required]],
   });
-  readonly createMsg = signal<Msg>(null);
-  readonly creating = signal(false);
 
-  // --- Confirmar pago ---
-  readonly confirmLocator = signal('');
-  readonly confirmMsg = signal<Msg>(null);
-  readonly confirming = signal(false);
+  ngOnInit(): void {
+    this.loadEvents();
+    this.loadPending();
+  }
 
-  // --- Reporte de ocupación ---
-  readonly occEventId = signal('');
-  readonly occReport = signal<OccupancyReport | null>(null);
-  readonly occMsg = signal<Msg>(null);
-  readonly loadingOcc = signal(false);
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/']);
+  }
+
+  // --- Labels ---
+  typeLabel(t: number): string { return EVENT_TYPE_LABELS[t] ?? 'Evento'; }
+  statusLabel(s: number): string { return RESERVATION_STATUS_LABELS[s] ?? ''; }
+  venueName(v: number): string { return VENUES[v] ?? `Sede ${v}`; }
+
+  // --- Eventos / reporte ---
+  loadEvents(): void {
+    this.loadingEvents.set(true);
+    this.api.listEvents().subscribe({
+      next: (e) => { this.events.set(e); this.loadingEvents.set(false); },
+      error: () => this.loadingEvents.set(false),
+    });
+  }
+
+  selectReport(ev: EventListItem): void {
+    this.loadingReport.set(true);
+    this.selectedReport.set(null);
+    this.api.getOccupancy(ev.id).subscribe({
+      next: (r) => { this.selectedReport.set(r); this.loadingReport.set(false); },
+      error: () => this.loadingReport.set(false),
+    });
+  }
+
+  closeReport(): void {
+    this.selectedReport.set(null);
+  }
+
+  // --- Pagos pendientes ---
+  loadPending(): void {
+    this.loadingPending.set(true);
+    this.pendingMsg.set(null);
+    this.api.listReservations(0).subscribe({   // 0 = Pendiente de pago
+      next: (r) => { this.pending.set(r); this.loadingPending.set(false); },
+      error: () => { this.loadingPending.set(false); },
+    });
+  }
+
+  confirm(r: ReservationListItem): void {
+    this.confirmingId.set(r.id);
+    this.pendingMsg.set(null);
+    this.api.confirmPayment(r.id).subscribe({
+      next: (res) => {
+        this.pendingMsg.set({ kind: 'ok', text: `Pago confirmado para ${r.buyerName}. Código: ${res.code}` });
+        this.confirmingId.set(null);
+        this.loadPending();
+        this.loadEvents();
+      },
+      error: (err) => {
+        this.pendingMsg.set({ kind: 'err', text: this.msg(err, 'No se pudo confirmar el pago.') });
+        this.confirmingId.set(null);
+      },
+    });
+  }
+
+  // --- Modal crear evento ---
+  openModal(): void {
+    this.createMsg.set(null);
+    this.modalOpen.set(true);
+  }
+  closeModal(): void {
+    this.modalOpen.set(false);
+  }
 
   createEvent(): void {
-    if (!this.hasKey()) { this.createMsg.set({ kind: 'err', text: 'Ingresa la API key primero.' }); return; }
     if (this.eventForm.invalid) { this.eventForm.markAllAsTouched(); return; }
-
     this.creating.set(true);
     this.createMsg.set(null);
     const v = this.eventForm.getRawValue();
@@ -82,11 +160,12 @@ export class AdminComponent {
       endsAt: new Date(v.endsAt).toISOString(),
       price: v.price,
       type: v.type,
-    }, this.apiKey().trim()).subscribe({
-      next: (res) => {
-        this.createMsg.set({ kind: 'ok', text: `Evento creado. ID: ${res.id}` });
+    }).subscribe({
+      next: () => {
         this.creating.set(false);
+        this.modalOpen.set(false);
         this.eventForm.reset({ venueId: 1, capacity: 50, price: 50, type: 2, title: '', description: '', startsAt: '', endsAt: '' });
+        this.loadEvents();
       },
       error: (err) => {
         this.createMsg.set({ kind: 'err', text: this.msg(err, 'No se pudo crear el evento.') });
@@ -95,47 +174,9 @@ export class AdminComponent {
     });
   }
 
-  confirmPayment(): void {
-    if (!this.hasKey()) { this.confirmMsg.set({ kind: 'err', text: 'Ingresa la API key primero.' }); return; }
-    const id = this.confirmLocator().trim();
-    if (!id) { this.confirmMsg.set({ kind: 'err', text: 'Ingresa el localizador de la reserva.' }); return; }
-
-    this.confirming.set(true);
-    this.confirmMsg.set(null);
-    this.api.confirmPayment(id, this.apiKey().trim()).subscribe({
-      next: (res) => {
-        this.confirmMsg.set({ kind: 'ok', text: `Pago confirmado. Código de entrada: ${res.code}` });
-        this.confirming.set(false);
-      },
-      error: (err) => {
-        this.confirmMsg.set({ kind: 'err', text: this.msg(err, 'No se pudo confirmar el pago.') });
-        this.confirming.set(false);
-      },
-    });
-  }
-
-  loadOccupancy(): void {
-    const id = this.occEventId().trim();
-    if (!id) { this.occMsg.set({ kind: 'err', text: 'Ingresa el id del evento.' }); return; }
-
-    this.loadingOcc.set(true);
-    this.occMsg.set(null);
-    this.occReport.set(null);
-    this.api.getOccupancy(id).subscribe({
-      next: (r) => {
-        this.occReport.set(r);
-        this.loadingOcc.set(false);
-      },
-      error: (err) => {
-        this.occMsg.set({ kind: 'err', text: this.msg(err, 'No se pudo cargar el reporte.') });
-        this.loadingOcc.set(false);
-      },
-    });
-  }
-
   private msg(err: unknown, fallback: string): string {
     const e = err as { status?: number; error?: { detail?: string; title?: string } };
-    if (e?.status === 401) return 'API key inválida o ausente.';
+    if (e?.status === 401) return 'Tu sesión expiró. Vuelve a iniciar sesión.';
     return e?.error?.detail ?? e?.error?.title ?? fallback;
   }
 }

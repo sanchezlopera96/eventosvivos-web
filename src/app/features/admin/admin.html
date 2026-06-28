@@ -1,28 +1,120 @@
 <main class="ev-container admin">
-  <a routerLink="/" class="back"><mat-icon>arrow_back</mat-icon> Volver a eventos</a>
+  <div class="topbar">
+    <a routerLink="/" class="back"><mat-icon>arrow_back</mat-icon> Volver a eventos</a>
+    <button mat-stroked-button (click)="logout()">
+      <mat-icon>logout</mat-icon> Cerrar sesión
+    </button>
+  </div>
 
   <header class="head">
-    <h1>Panel de administración</h1>
-    <p>Operaciones del organizador. Requieren la clave de administración.</p>
+    <div>
+      <h1>Panel de administración</h1>
+      <p>Gestiona eventos y confirma pagos de reservas.</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="openModal()">
+      <mat-icon>add</mat-icon> Crear evento
+    </button>
   </header>
 
-  <!-- API key -->
-  <section class="keybar">
-    <mat-form-field appearance="outline" class="grow">
-      <mat-label>API key de administración</mat-label>
-      <input matInput type="password" [ngModel]="apiKey()" (ngModelChange)="apiKey.set($event)"
-             placeholder="Pega aquí tu clave">
-      <mat-icon matSuffix>key</mat-icon>
-    </mat-form-field>
-    @if (hasKey()) {
-      <span class="key-ok"><mat-icon>check_circle</mat-icon> Clave lista</span>
-    }
-  </section>
-
   <div class="grid">
-    <!-- Crear evento -->
+    <!-- Pagos pendientes -->
     <section class="panel">
-      <h2>Crear evento</h2>
+      <div class="panel-head">
+        <h2>Pagos pendientes</h2>
+        <button mat-icon-button (click)="loadPending()" title="Actualizar">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+
+      @if (pendingMsg(); as m) {
+        <p class="msg" [class.ok]="m.kind === 'ok'" [class.err]="m.kind === 'err'">{{ m.text }}</p>
+      }
+
+      @if (loadingPending()) {
+        <p class="muted">Cargando…</p>
+      } @else if (pending().length === 0) {
+        <p class="muted">No hay pagos pendientes. </p>
+      } @else {
+        <ul class="pending-list">
+          @for (r of pending(); track r.id) {
+            <li>
+              <div class="info">
+                <strong>{{ r.buyerName }}</strong>
+                <span class="ev-title">{{ r.eventTitle }}</span>
+                <span class="meta">{{ r.quantity }} entrada(s) · {{ r.createdAt | date:'d MMM, HH:mm' }}</span>
+              </div>
+              <button mat-flat-button color="primary"
+                      [disabled]="confirmingId() === r.id" (click)="confirm(r)">
+                @if (confirmingId() === r.id) { … } @else { Confirmar }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Reporte de ocupación con lista de eventos -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Ocupación por evento</h2>
+        <button mat-icon-button (click)="loadEvents()" title="Actualizar">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+
+      @if (loadingEvents()) {
+        <p class="muted">Cargando eventos…</p>
+      } @else if (events().length === 0) {
+        <p class="muted">No hay eventos.</p>
+      } @else {
+        <ul class="event-list">
+          @for (ev of events(); track ev.id) {
+            <li (click)="selectReport(ev)" class="event-row">
+              <div class="info">
+                <strong>{{ ev.title }}</strong>
+                <span class="meta">{{ typeLabel(ev.type) }} · {{ venueName(ev.venueId) }}</span>
+              </div>
+              <div class="seats">
+                <span>{{ ev.availableSeats }}/{{ ev.capacity }}</span>
+                <mat-icon>chevron_right</mat-icon>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+</main>
+
+<!-- Modal: detalle de ocupación -->
+@if (selectedReport(); as r) {
+  <div class="overlay" (click)="closeReport()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-head">
+        <h3>{{ r.title }}</h3>
+        <button mat-icon-button (click)="closeReport()"><mat-icon>close</mat-icon></button>
+      </div>
+      <dl class="report">
+        <div><dt>Capacidad</dt><dd>{{ r.capacity }}</dd></div>
+        <div><dt>Vendidas</dt><dd>{{ r.ticketsSold }}</dd></div>
+        <div><dt>Disponibles</dt><dd>{{ r.availableSeats }}</dd></div>
+        <div><dt>Ocupación</dt><dd>{{ r.occupancyPercentage }}%</dd></div>
+        <div><dt>Ingresos</dt><dd>{{ r.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</dd></div>
+      </dl>
+      <div class="occ-bar"><div class="occ-fill" [style.width.%]="r.occupancyPercentage"></div></div>
+    </div>
+  </div>
+}
+
+<!-- Modal: crear evento -->
+@if (modalOpen()) {
+  <div class="overlay" (click)="closeModal()">
+    <div class="dialog dialog-form" (click)="$event.stopPropagation()">
+      <div class="dialog-head">
+        <h3>Crear evento</h3>
+        <button mat-icon-button (click)="closeModal()"><mat-icon>close</mat-icon></button>
+      </div>
+
       <form [formGroup]="eventForm" (ngSubmit)="createEvent()">
         <mat-form-field appearance="outline">
           <mat-label>Título</mat-label>
@@ -76,60 +168,16 @@
         </div>
 
         @if (createMsg(); as m) {
-          <p class="msg" [class.ok]="m.kind === 'ok'" [class.err]="m.kind === 'err'">{{ m.text }}</p>
-        }
-
-        <button mat-flat-button color="primary" type="submit" [disabled]="creating()">
-          @if (creating()) { Creando… } @else { Crear evento }
-        </button>
-      </form>
-    </section>
-
-    <div class="side">
-      <!-- Confirmar pago -->
-      <section class="panel">
-        <h2>Confirmar pago</h2>
-        <p class="sub">Confirma una reserva pendiente y emite su código de entrada.</p>
-        <mat-form-field appearance="outline">
-          <mat-label>Localizador de la reserva</mat-label>
-          <input matInput [ngModel]="confirmLocator()" (ngModelChange)="confirmLocator.set($event)">
-        </mat-form-field>
-        @if (confirmMsg(); as m) {
-          <p class="msg" [class.ok]="m.kind === 'ok'" [class.err]="m.kind === 'err'">{{ m.text }}</p>
-        }
-        <button mat-flat-button color="primary" (click)="confirmPayment()" [disabled]="confirming()">
-          @if (confirming()) { Confirmando… } @else { Confirmar pago }
-        </button>
-      </section>
-
-      <!-- Reporte de ocupación -->
-      <section class="panel">
-        <h2>Reporte de ocupación</h2>
-        <p class="sub">Consulta la ocupación e ingresos de un evento.</p>
-        <mat-form-field appearance="outline">
-          <mat-label>ID del evento</mat-label>
-          <input matInput [ngModel]="occEventId()" (ngModelChange)="occEventId.set($event)">
-        </mat-form-field>
-        @if (occMsg(); as m) {
           <p class="msg err">{{ m.text }}</p>
         }
-        <button mat-stroked-button (click)="loadOccupancy()" [disabled]="loadingOcc()">
-          @if (loadingOcc()) { Cargando… } @else { Ver reporte }
-        </button>
 
-        @if (occReport(); as r) {
-          <div class="report">
-            <h3>{{ r.title }}</h3>
-            <dl>
-              <div><dt>Capacidad</dt><dd>{{ r.capacity }}</dd></div>
-              <div><dt>Vendidas</dt><dd>{{ r.ticketsSold }}</dd></div>
-              <div><dt>Disponibles</dt><dd>{{ r.availableSeats }}</dd></div>
-              <div><dt>Ocupación</dt><dd>{{ r.occupancyPercentage }}%</dd></div>
-              <div><dt>Ingresos</dt><dd>{{ r.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</dd></div>
-            </dl>
-          </div>
-        }
-      </section>
+        <div class="dialog-actions">
+          <button mat-stroked-button type="button" (click)="closeModal()">Cancelar</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="creating()">
+            @if (creating()) { Creando… } @else { Crear evento }
+          </button>
+        </div>
+      </form>
     </div>
   </div>
-</main>
+}

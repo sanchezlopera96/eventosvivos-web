@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './core/auth/admin.guard';
 
 export const routes: Routes = [
   {
@@ -26,7 +27,14 @@ export const routes: Routes = [
     title: 'EventosVivos — Gestionar reserva',
   },
   {
+    path: 'admin/login',
+    loadComponent: () =>
+      import('./features/admin/admin-login').then((m) => m.AdminLoginComponent),
+    title: 'EventosVivos — Acceso',
+  },
+  {
     path: 'admin',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./features/admin/admin').then((m) => m.AdminComponent),
     title: 'EventosVivos — Administración',

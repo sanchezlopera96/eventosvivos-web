@@ -1,0 +1,22 @@
+<nav class="navbar">
+  <div class="ev-container nav-inner">
+    <a routerLink="/" class="brand">
+      <span class="dot"></span>
+      EventosVivos
+    </a>
+
+    <div class="links">
+      <a routerLink="/" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">Eventos</a>
+      <a routerLink="/reservations/manage" routerLinkActive="active">Gestionar reserva</a>
+      <a routerLink="/admin" routerLinkActive="active">Administración</a>
+    </div>
+
+    <div class="session">
+      @if (isAuthenticated()) {
+        <span class="badge"><mat-icon>shield_person</mat-icon> Admin</span>
+        <button mat-stroked-button (click)="logout()">Cerrar sesión</button>
+      }
+    </div>
+  </div>
+</nav>
