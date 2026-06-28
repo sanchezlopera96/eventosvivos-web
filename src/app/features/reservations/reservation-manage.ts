@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,17 +17,21 @@ import {
 @Component({
   selector: 'app-reservation-manage',
   imports: [
-    RouterLink, DatePipe, FormsModule,
+    RouterLink, DatePipe, ReactiveFormsModule,
     MatButtonModule, MatInputModule, MatFormFieldModule,
     MatProgressSpinnerModule, MatIconModule,
   ],
   templateUrl: './reservation-manage.html',
   styleUrl: './reservation-manage.scss',
 })
-export class ReservationManageComponent {
+export class ReservationManageComponent implements OnInit {
   private readonly api = inject(EventApiService);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly email = signal('');
+  readonly emailCtrl = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.email],
+  });
   readonly reservations = signal<ReservationListItem[] | null>(null);
   readonly loading = signal(false);
   readonly loadError = signal<string | null>(null);
@@ -43,9 +47,22 @@ export class ReservationManageComponent {
     return ['st-pending', 'st-confirmed', 'st-cancelled'][status] ?? '';
   }
 
+  ngOnInit(): void {
+    // Si llega un correo por query param (p. ej. tras crear una reserva),
+    // lo precarga y busca automaticamente.
+    const email = this.route.snapshot.queryParamMap.get('email');
+    if (email) {
+      this.emailCtrl.setValue(email);
+      this.search();
+    }
+  }
+
   search(): void {
-    const email = this.email().trim();
-    if (!email) return;
+    if (this.emailCtrl.invalid) {
+      this.emailCtrl.markAsTouched();
+      return;
+    }
+    const email = this.emailCtrl.value.trim();
 
     this.loading.set(true);
     this.loadError.set(null);

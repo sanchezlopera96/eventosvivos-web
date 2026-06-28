@@ -99,7 +99,7 @@
         <div><dt>Vendidas</dt><dd>{{ r.ticketsSold }}</dd></div>
         <div><dt>Disponibles</dt><dd>{{ r.availableSeats }}</dd></div>
         <div><dt>Ocupación</dt><dd>{{ r.occupancyPercentage }}%</dd></div>
-        <div><dt>Ingresos</dt><dd>{{ r.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</dd></div>
+        <div><dt>Ingresos</dt><dd>{{ r.totalRevenue | currency:'COP':'symbol':'1.0-0' }}</dd></div>
       </dl>
       <div class="occ-bar"><div class="occ-fill" [style.width.%]="r.occupancyPercentage"></div></div>
     </div>
@@ -148,24 +148,60 @@
         <div class="row">
           <mat-form-field appearance="outline">
             <mat-label>Capacidad</mat-label>
-            <input matInput type="number" formControlName="capacity">
+            <input matInput type="number" formControlName="capacity" [max]="maxCapacity()">
+            <mat-hint>Aforo de la sede: {{ maxCapacity() }}</mat-hint>
+            @if (eventForm.controls.capacity.hasError('max')) {
+              <mat-error>No puede superar el aforo de la sede ({{ maxCapacity() }}).</mat-error>
+            }
+            @if (eventForm.controls.capacity.hasError('min')) {
+              <mat-error>Debe ser al menos 1.</mat-error>
+            }
           </mat-form-field>
           <mat-form-field appearance="outline">
-            <mat-label>Precio (USD)</mat-label>
+            <mat-label>Precio (COP)</mat-label>
             <input matInput type="number" formControlName="price">
           </mat-form-field>
         </div>
 
         <div class="row">
           <mat-form-field appearance="outline">
-            <mat-label>Inicio</mat-label>
-            <input matInput type="datetime-local" formControlName="startsAt">
+            <mat-label>Fecha de inicio</mat-label>
+            <input matInput [matDatepicker]="startPicker" [min]="minDate"
+                   formControlName="startDate" readonly (click)="startPicker.open()">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
           </mat-form-field>
           <mat-form-field appearance="outline">
-            <mat-label>Fin</mat-label>
-            <input matInput type="datetime-local" formControlName="endsAt">
+            <mat-label>Hora de inicio</mat-label>
+            <mat-select formControlName="startTime">
+              @for (t of timeOptions; track t) {
+                <mat-option [value]="t">{{ t }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
         </div>
+
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha de fin</mat-label>
+            <input matInput [matDatepicker]="endPicker" [min]="minDate"
+                   formControlName="endDate" readonly (click)="endPicker.open()">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Hora de fin</mat-label>
+            <mat-select formControlName="endTime">
+              @for (t of timeOptions; track t) {
+                <mat-option [value]="t">{{ t }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        @if (eventForm.hasError('endsBeforeStarts') && eventForm.controls.endTime.touched) {
+          <p class="msg err">La fecha y hora de fin deben ser posteriores a las de inicio.</p>
+        }
 
         @if (createMsg(); as m) {
           <p class="msg err">{{ m.text }}</p>

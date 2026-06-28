@@ -118,3 +118,10 @@ export const VENUES: Record<number, string> = {
   2: 'Sala Norte (Bogotá, 50)',
   3: 'Arena Sur (Medellín, 500)',
 };
+
+// Aforo (capacidad maxima) de cada sede.
+export const VENUE_CAPACITIES: Record<number, number> = {
+  1: 200,
+  2: 50,
+  3: 500,
+};

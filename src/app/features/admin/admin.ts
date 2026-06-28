@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 
 import { EventApiService } from '../../core/services/event-api.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -17,15 +18,34 @@ import {
   RESERVATION_STATUS_LABELS,
   ReservationListItem,
   VENUES,
+  VENUE_CAPACITIES,
 } from '../../core/models/event.models';
 
 type Msg = { kind: 'ok' | 'err'; text: string } | null;
+
+// Combina una fecha (Date) y una hora ("HH:mm") en un Date completo.
+function combineDateTime(date: Date | null, time: string | null): Date | null {
+  if (!date || !time) return null;
+  const [h, m] = time.split(':').map(Number);
+  const d = new Date(date);
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+// Validador de grupo: la fecha/hora de fin debe ser posterior a la de inicio.
+const endsAfterStartsValidator: ValidatorFn = (group: AbstractControl) => {
+  const starts = combineDateTime(group.get('startDate')?.value, group.get('startTime')?.value);
+  const ends = combineDateTime(group.get('endDate')?.value, group.get('endTime')?.value);
+  if (!starts || !ends) return null;
+  return ends > starts ? null : { endsBeforeStarts: true };
+};
 
 @Component({
   selector: 'app-admin',
   imports: [
     RouterLink, CurrencyPipe, DatePipe, ReactiveFormsModule,
     MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatIconModule,
+    MatDatepickerModule,
   ],
   templateUrl: './admin.html',
   styleUrl: './admin.scss',
@@ -57,6 +77,9 @@ export class AdminComponent implements OnInit {
   readonly confirmingId = signal<string | null>(null);
   readonly pendingMsg = signal<Msg>(null);
 
+  // Aforo de la sede seleccionada (limita la capacidad del evento).
+  readonly maxCapacity = signal<number>(VENUE_CAPACITIES[1]);
+
   // --- Modal crear evento ---
   readonly modalOpen = signal(false);
   readonly creating = signal(false);
@@ -65,16 +88,39 @@ export class AdminComponent implements OnInit {
     title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
     description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
     venueId: [1, [Validators.required]],
-    capacity: [50, [Validators.required, Validators.min(1)]],
-    startsAt: ['', [Validators.required]],
-    endsAt: ['', [Validators.required]],
-    price: [50, [Validators.required, Validators.min(0.01)]],
+    capacity: [VENUE_CAPACITIES[1], [Validators.required, Validators.min(1), Validators.max(VENUE_CAPACITIES[1])]],
+    startDate: [null as Date | null, [Validators.required]],
+    startTime: ['19:00', [Validators.required]],
+    endDate: [null as Date | null, [Validators.required]],
+    endTime: ['21:00', [Validators.required]],
+    price: [50000, [Validators.required, Validators.min(1)]],
     type: [2, [Validators.required]],
+  }, { validators: [endsAfterStartsValidator] });
+
+  // Opciones de hora cada 30 minutos (00:00 .. 23:30).
+  readonly timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2).toString().padStart(2, '0');
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${h}:${m}`;
   });
+
+  // Fecha minima seleccionable: hoy.
+  readonly minDate = new Date();
 
   ngOnInit(): void {
     this.loadEvents();
     this.loadPending();
+
+    // Al cambiar de sede: sugiere su aforo como capacidad y limita el maximo.
+    this.eventForm.controls.venueId.valueChanges.subscribe((venueId) => {
+      const aforo = VENUE_CAPACITIES[venueId] ?? 1;
+      this.maxCapacity.set(aforo);
+      this.eventForm.controls.capacity.setValidators([
+        Validators.required, Validators.min(1), Validators.max(aforo),
+      ]);
+      this.eventForm.controls.capacity.setValue(aforo);
+      this.eventForm.controls.capacity.updateValueAndValidity();
+    });
   }
 
   logout(): void {
@@ -151,20 +197,28 @@ export class AdminComponent implements OnInit {
     this.createMsg.set(null);
     const v = this.eventForm.getRawValue();
 
+    const starts = combineDateTime(v.startDate, v.startTime);
+    const ends = combineDateTime(v.endDate, v.endTime);
+    if (!starts || !ends) { this.creating.set(false); return; }
+
     this.api.createEvent({
       title: v.title.trim(),
       description: v.description.trim(),
       venueId: v.venueId,
       capacity: v.capacity,
-      startsAt: new Date(v.startsAt).toISOString(),
-      endsAt: new Date(v.endsAt).toISOString(),
+      startsAt: starts.toISOString(),
+      endsAt: ends.toISOString(),
       price: v.price,
       type: v.type,
     }).subscribe({
       next: () => {
         this.creating.set(false);
         this.modalOpen.set(false);
-        this.eventForm.reset({ venueId: 1, capacity: 50, price: 50, type: 2, title: '', description: '', startsAt: '', endsAt: '' });
+        this.eventForm.reset({
+          venueId: 1, capacity: VENUE_CAPACITIES[1], price: 50000, type: 2,
+          title: '', description: '',
+          startDate: null, startTime: '19:00', endDate: null, endTime: '21:00',
+        });
         this.loadEvents();
       },
       error: (err) => {

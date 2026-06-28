@@ -9,9 +9,15 @@
   <section class="search-box">
     <mat-form-field appearance="outline" class="grow">
       <mat-label>Tu correo electrónico</mat-label>
-      <input matInput type="email" [ngModel]="email()" (ngModelChange)="email.set($event)"
+      <input matInput type="email" [formControl]="emailCtrl"
              (keyup.enter)="search()" placeholder="tucorreo@ejemplo.com">
       <mat-icon matSuffix>mail</mat-icon>
+      @if ((emailCtrl.dirty || emailCtrl.touched) && emailCtrl.hasError('required')) {
+        <mat-error>Ingresa tu correo.</mat-error>
+      }
+      @if ((emailCtrl.dirty || emailCtrl.touched) && emailCtrl.hasError('email')) {
+        <mat-error>Ingresa un correo válido.</mat-error>
+      }
     </mat-form-field>
     <button mat-flat-button color="primary" (click)="search()" [disabled]="loading()">
       Buscar
