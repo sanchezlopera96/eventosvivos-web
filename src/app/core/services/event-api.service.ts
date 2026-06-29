@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -12,6 +12,8 @@ import {
   EventListItem,
   OccupancyReport,
   ReservationDetail,
+  ReservationListItem,
+  UpdateEventRequest,
 } from '../models/event.models';
 
 export interface EventFilters {
@@ -54,38 +56,46 @@ export class EventApiService {
     return this.http.get<ReservationDetail>(`${this.base}/api/reservations/${id}`);
   }
 
+  // Busca las reservas asociadas a un correo (publico).
+  searchReservationsByEmail(email: string): Observable<ReservationListItem[]> {
+    const params = new HttpParams().set('email', email);
+    return this.http.get<ReservationListItem[]>(
+      `${this.base}/api/reservations/by-email`, { params });
+  }
+
   createReservation(body: CreateReservationRequest): Observable<CreatedResponse> {
     return this.http.post<CreatedResponse>(`${this.base}/api/reservations`, body);
   }
 
-  // Cancelar es publico (el localizador es la llave). Confirmar el pago es
-  // una accion de administracion: requiere la API key del organizador.
-  confirmPayment(reservationId: string, apiKey: string): Observable<ConfirmPaymentResponse> {
-    return this.http.post<ConfirmPaymentResponse>(
-      `${this.base}/api/reservations/${reservationId}/confirm`, {},
-      { headers: this.adminHeaders(apiKey) });
-  }
-
+  // Cancelar es publico (el localizador es la llave).
   cancelReservation(reservationId: string): Observable<CancelReservationResponse> {
     return this.http.post<CancelReservationResponse>(
       `${this.base}/api/reservations/${reservationId}/cancel`, {});
   }
 
-  // --- Administración (requieren API key) ---
+  // --- Administración (el interceptor añade el token JWT automáticamente) ---
 
-  createEvent(body: CreateEventRequest, apiKey: string): Observable<CreatedResponse> {
-    return this.http.post<CreatedResponse>(`${this.base}/api/events`, body, {
-      headers: this.adminHeaders(apiKey),
-    });
+  listReservations(status?: number): Observable<ReservationListItem[]> {
+    let params = new HttpParams();
+    if (status != null) params = params.set('status', status);
+    return this.http.get<ReservationListItem[]>(`${this.base}/api/reservations`, { params });
   }
 
-  cancelEvent(eventId: string, apiKey: string): Observable<unknown> {
-    return this.http.post(`${this.base}/api/events/${eventId}/cancel`, {}, {
-      headers: this.adminHeaders(apiKey),
-    });
+  createEvent(body: CreateEventRequest): Observable<CreatedResponse> {
+    return this.http.post<CreatedResponse>(`${this.base}/api/events`, body);
   }
 
-  private adminHeaders(apiKey: string): HttpHeaders {
-    return new HttpHeaders({ 'X-Api-Key': apiKey });
+  // Edita un evento activo (solo admin). El id va en la URL.
+  updateEvent(id: string, body: UpdateEventRequest): Observable<CreatedResponse> {
+    return this.http.put<CreatedResponse>(`${this.base}/api/events/${id}`, body);
+  }
+
+  cancelEvent(eventId: string): Observable<unknown> {
+    return this.http.post(`${this.base}/api/events/${eventId}/cancel`, {});
+  }
+
+  confirmPayment(reservationId: string): Observable<ConfirmPaymentResponse> {
+    return this.http.post<ConfirmPaymentResponse>(
+      `${this.base}/api/reservations/${reservationId}/confirm`, {});
   }
 }

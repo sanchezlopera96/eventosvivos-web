@@ -1,1 +1,9 @@
-:host { display: block; min-height: 100vh; }
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1 0 auto;
+}

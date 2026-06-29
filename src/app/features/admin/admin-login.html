@@ -1,0 +1,42 @@
+<main class="ev-container login">
+  <a routerLink="/" class="back"><mat-icon>arrow_back</mat-icon> Volver a eventos</a>
+
+  <div class="card">
+    <div class="brand">
+      <mat-icon>lock</mat-icon>
+      <h1>Acceso de administración</h1>
+      <p>Inicia sesión para gestionar eventos y reservas.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Usuario</mat-label>
+        <input matInput formControlName="username" autocomplete="username">
+        @if (form.controls.username.touched && form.controls.username.invalid) {
+          <mat-error>Ingresa tu usuario.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Contraseña</mat-label>
+        <input matInput [type]="hidePassword() ? 'password' : 'text'"
+               formControlName="password" autocomplete="current-password">
+        <button mat-icon-button matSuffix type="button"
+                (click)="hidePassword.set(!hidePassword())">
+          <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <mat-error>Ingresa tu contraseña.</mat-error>
+        }
+      </mat-form-field>
+
+      @if (error()) {
+        <p class="error"><mat-icon>error_outline</mat-icon>{{ error() }}</p>
+      }
+
+      <button mat-flat-button color="primary" type="submit" [disabled]="loading()" class="submit">
+        @if (loading()) { Ingresando… } @else { Iniciar sesión }
+      </button>
+    </form>
+  </div>
+</main>

@@ -6,10 +6,6 @@
       Conciertos, talleres y conferencias. Reserva tu lugar y asegura tu entrada
       antes de que se agote el aforo.
     </p>
-    <nav class="hero-nav">
-      <a routerLink="/reservations/manage">Gestionar mi reserva</a>
-      <a routerLink="/admin">Administración</a>
-    </nav>
   </div>
 </header>
 
@@ -19,7 +15,7 @@
     <mat-form-field appearance="outline" class="f-grow">
       <mat-label>Buscar por título</mat-label>
       <input matInput [ngModel]="filterTitle()" (ngModelChange)="filterTitle.set($event)"
-             (keyup.enter)="load()" placeholder="Ej: Festival de jazz">
+             placeholder="Ej: Festival de jazz">
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
@@ -43,10 +39,14 @@
       </mat-select>
     </mat-form-field>
 
-    <div class="filter-actions">
-      <button mat-flat-button color="primary" (click)="load()">Aplicar</button>
-      <button mat-button (click)="clearFilters()">Limpiar</button>
-    </div>
+    @if (hasActiveFilters()) {
+      <div class="filter-actions">
+        <button mat-stroked-button (click)="clearFilters()">
+          <mat-icon>close</mat-icon> Limpiar filtros
+        </button>
+      </div>
+    }
+
   </section>
 
   <!-- Estados -->
@@ -59,7 +59,7 @@
     <div class="state state-error">
       <mat-icon>error_outline</mat-icon>
       <p>{{ error() }}</p>
-      <button mat-stroked-button (click)="load()">Reintentar</button>
+      <button mat-stroked-button (click)="retry()">Reintentar</button>
     </div>
   } @else if (!hasEvents()) {
     <div class="state">
@@ -74,7 +74,7 @@
           <div class="card-body">
             <div class="card-top">
               <span class="badge" [class]="typeClass(event.type)">{{ typeLabel(event.type) }}</span>
-              <span class="price">{{ event.price | currency:'USD':'symbol':'1.0-0' }}</span>
+              <span class="price">{{ event.price | currency:'COP':'symbol':'1.0-0' }}</span>
             </div>
 
             <h3 class="card-title">{{ event.title }}</h3>

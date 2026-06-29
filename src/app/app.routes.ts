@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './core/auth/admin.guard';
 
 export const routes: Routes = [
   {
@@ -20,16 +21,24 @@ export const routes: Routes = [
     title: 'EventosVivos — Gestionar reserva',
   },
   {
-    path: 'reservations/manage/:id',
+    path: 'admin/login',
     loadComponent: () =>
-      import('./features/reservations/reservation-manage').then((m) => m.ReservationManageComponent),
-    title: 'EventosVivos — Gestionar reserva',
+      import('./features/admin/admin-login').then((m) => m.AdminLoginComponent),
+    title: 'EventosVivos — Acceso',
   },
   {
     path: 'admin',
+    canActivate: [adminGuard],
     loadComponent: () =>
       import('./features/admin/admin').then((m) => m.AdminComponent),
     title: 'EventosVivos — Administración',
+  },
+  {
+    path: 'admin/reporte',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./features/admin/report/report').then((m) => m.ReportComponent),
+    title: 'EventosVivos — Reporte',
   },
   { path: '**', redirectTo: '' },
 ];

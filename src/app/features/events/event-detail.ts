@@ -21,7 +21,7 @@ import {
 type ReserveState =
   | { kind: 'idle' }
   | { kind: 'submitting' }
-  | { kind: 'success'; reservationId: string }
+  | { kind: 'success'; reservationId: string; email: string }
   | { kind: 'error'; message: string };
 
 @Component({
@@ -109,7 +109,7 @@ export class EventDetailComponent {
       buyerEmail: v.buyerEmail.trim(),
     }).subscribe({
       next: (res) => {
-        this.reserve.set({ kind: 'success', reservationId: res.id });
+        this.reserve.set({ kind: 'success', reservationId: res.id, email: v.buyerEmail.trim() });
         // Refresca cupos disponibles tras reservar.
         this.loadEvent(e.id);
       },

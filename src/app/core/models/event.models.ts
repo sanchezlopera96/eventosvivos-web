@@ -36,6 +36,19 @@ export interface ReservationDetail {
   confirmedAt: string | null;
 }
 
+// Item de la lista de reservas (del endpoint GET /reservations).
+export interface ReservationListItem {
+  id: string;
+  eventId: string;
+  eventTitle: string;
+  buyerName: string;
+  buyerEmail: string;
+  quantity: number;
+  status: number;
+  code: string | null;
+  createdAt: string;
+}
+
 export interface EventListItem {
   id: string;
   title: string;
@@ -105,3 +118,12 @@ export const VENUES: Record<number, string> = {
   2: 'Sala Norte (Bogotá, 50)',
   3: 'Arena Sur (Medellín, 500)',
 };
+
+// Aforo (capacidad maxima) de cada sede.
+export const VENUE_CAPACITIES: Record<number, number> = {
+  1: 200,
+  2: 50,
+  3: 500,
+};
+
+export type UpdateEventRequest = CreateEventRequest;

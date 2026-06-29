@@ -1,0 +1,96 @@
+<main class="ev-container report">
+  <div class="topbar">
+    <a routerLink="/admin" class="back"><mat-icon>arrow_back</mat-icon> Volver al panel</a>
+    <button mat-icon-button (click)="load()" title="Actualizar"><mat-icon>refresh</mat-icon></button>
+  </div>
+
+  <header class="head">
+    <h1>Reporte de ocupación</h1>
+    <p>Resumen global de eventos, entradas e ingresos.</p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Cargando reporte…</p>
+  } @else if (error()) {
+    <p class="msg err">No se pudo cargar el reporte. <button mat-stroked-button (click)="load()">Reintentar</button></p>
+  } @else if (reports().length === 0) {
+    <p class="muted">No hay eventos para reportar.</p>
+  } @else {
+    <!-- Totales -->
+    <section class="totals">
+      <div class="stat">
+        <span class="stat-label">Eventos</span>
+        <span class="stat-value">{{ totalEvents() }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Entradas vendidas</span>
+        <span class="stat-value">{{ totalSold() | number }}</span>
+        <span class="stat-sub">de {{ totalCapacity() | number }} disponibles</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Ingresos totales</span>
+        <span class="stat-value">{{ totalRevenue() | currency:'COP':'symbol':'1.0-0' }}</span>
+      </div>
+      <div class="stat stat-gauge">
+        <span class="stat-label">Ocupación media</span>
+        <app-gauge [value]="avgOccupancy()" [size]="92" [stroke]="10"></app-gauge>
+      </div>
+    </section>
+
+    <div class="charts">
+      <!-- Barras de ocupación por evento -->
+      <section class="panel">
+        <h2>Ocupación por evento</h2>
+        <ul class="bars">
+          @for (b of bars(); track b.title) {
+            <li class="bar-row">
+              <div class="bar-head">
+                <span class="bar-title" [title]="b.title">{{ b.title }}</span>
+                <span class="bar-pct">{{ b.pct }}%</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" [class.high]="b.pct >= 90" [class.mid]="b.pct >= 60 && b.pct < 90"
+                     [style.width.%]="b.pct"></div>
+              </div>
+              <span class="bar-meta">
+                {{ b.sold }} / {{ b.capacity }} entradas
+                · <span class="ev-status" [attr.data-status]="b.status">{{ eventStatusLabel(b.status) }}</span>
+              </span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Dona de ingresos por evento -->
+      <section class="panel">
+        <h2>Ingresos por evento</h2>
+        @if (donut().length === 0) {
+          <p class="muted">Aún no hay ingresos registrados.</p>
+        } @else {
+          <div class="donut-wrap">
+            <svg viewBox="0 0 160 160" width="160" height="160" class="donut">
+              @for (s of donut(); track s.label) {
+                <circle cx="80" cy="80" r="60" fill="none" stroke-width="22"
+                        [attr.stroke]="s.color"
+                        [attr.stroke-dasharray]="s.dash + ' ' + (donutCircumference - s.dash)"
+                        [attr.stroke-dashoffset]="s.offset"
+                        transform="rotate(-90 80 80)" />
+              }
+              <text x="80" y="80" text-anchor="middle" dominant-baseline="central"
+                    class="donut-center">{{ totalRevenue() | currency:'COP':'symbol':'1.0-0' }}</text>
+            </svg>
+            <ul class="legend">
+              @for (s of donut(); track s.label) {
+                <li>
+                  <span class="dot" [style.background]="s.color"></span>
+                  <span class="leg-title" [title]="s.label">{{ s.label }}</span>
+                  <span class="leg-val">{{ s.pct | number:'1.0-0' }}%</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</main>

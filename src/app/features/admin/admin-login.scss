@@ -1,0 +1,36 @@
+:host { display: block; padding: 32px 0 64px; }
+
+.back {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ev-text-dim); margin-bottom: 24px; font-size: 0.92rem;
+}
+.back:hover { color: var(--ev-primary); text-decoration: none; }
+.back mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+.card {
+  max-width: 420px;
+  margin: 40px auto 0;
+  background: var(--ev-surface);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius);
+  padding: 36px 32px;
+}
+
+.brand { text-align: center; margin-bottom: 28px; }
+.brand mat-icon {
+  font-size: 40px; width: 40px; height: 40px;
+  color: var(--ev-primary);
+  margin-bottom: 8px;
+}
+.brand h1 { font-size: 1.5rem; color: var(--ev-text); }
+.brand p { color: var(--ev-text-dim); font-size: 0.92rem; margin-top: 6px; }
+
+form { display: flex; flex-direction: column; gap: 6px; }
+mat-form-field { width: 100%; }
+.submit { margin-top: 10px; height: 46px; font-size: 1rem; }
+
+.error {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--ev-danger); font-size: 0.88rem; margin: 4px 0 6px;
+}
+.error mat-icon { font-size: 18px; width: 18px; height: 18px; }
