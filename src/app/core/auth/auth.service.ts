@@ -19,16 +19,12 @@ export class AuthService {
   // Estado reactivo del token (inicializado desde sessionStorage).
   private readonly token = signal<string | null>(this.readToken());
 
+  // Solo CALCULA si la sesion es valida; no produce efectos secundarios
+  // (un computed no debe escribir signals ni tocar el storage).
   readonly isAuthenticated = computed(() => {
     const t = this.token();
     if (!t) return false;
-    const expires = sessionStorage.getItem(EXPIRES_KEY);
-    if (expires && new Date(expires).getTime() < Date.now()) {
-      // Token expirado: lo limpiamos.
-      this.clear();
-      return false;
-    }
-    return true;
+    return !this.isExpired();
   });
 
   login(username: string, password: string): Observable<LoginResponse> {
@@ -42,7 +38,16 @@ export class AuthService {
   }
 
   getToken(): string | null {
+    // Si el token guardado ya expiro, se limpia aqui (fuera del computed).
+    if (this.token() && this.isExpired()) {
+      this.clear();
+    }
     return this.token();
+  }
+
+  private isExpired(): boolean {
+    const expires = sessionStorage.getItem(EXPIRES_KEY);
+    return !!expires && new Date(expires).getTime() < Date.now();
   }
 
   private store(token: string, expiresAt: string): void {
