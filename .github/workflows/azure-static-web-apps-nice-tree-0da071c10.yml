@@ -1,5 +1,4 @@
 name: Azure Static Web Apps CI/CD
-
 on:
   push:
     branches:
@@ -8,7 +7,6 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
-
 jobs:
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
@@ -19,7 +17,6 @@ jobs:
         with:
           submodules: true
           lfs: false
-
       # Construimos nosotros con una version de Node compatible con Angular 22.
       # (El builder por defecto de Azure -Oryx- no ofrece aun Node >=24.15,
       # por eso compilamos aqui y luego solo subimos el resultado.)
@@ -27,13 +24,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24.15.0'
-
       - name: Install dependencies
         run: npm ci
-
+      # Las pruebas (Vitest) corren en modo single-run; si fallan, no se despliega.
+      - name: Run tests
+        run: npm test -- --watch=false
       - name: Build Angular app
         run: npm run build
-
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -49,7 +46,6 @@ jobs:
           skip_app_build: true
           skip_api_build: true
           ###### End of Repository/Build Configurations ######
-
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
