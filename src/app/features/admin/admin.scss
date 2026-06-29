@@ -52,8 +52,7 @@
 .ev-title { color: var(--ev-text-dim); font-size: 0.88rem; }
 .meta { color: var(--ev-text-faint); font-size: 0.8rem; }
 
-.event-row { cursor: pointer; transition: border-color 0.15s; }
-.event-row:hover { border-color: var(--ev-primary); }
+.event-row { transition: border-color 0.15s; }
 .seats { display: flex; align-items: center; gap: 4px; color: var(--ev-text-dim); font-size: 0.9rem; white-space: nowrap; }
 .seats mat-icon { font-size: 20px; width: 20px; height: 20px; color: var(--ev-text-faint); }
 

@@ -13,6 +13,7 @@ import {
   OccupancyReport,
   ReservationDetail,
   ReservationListItem,
+  UpdateEventRequest,
 } from '../models/event.models';
 
 export interface EventFilters {
@@ -82,6 +83,11 @@ export class EventApiService {
 
   createEvent(body: CreateEventRequest): Observable<CreatedResponse> {
     return this.http.post<CreatedResponse>(`${this.base}/api/events`, body);
+  }
+
+  // Edita un evento activo (solo admin). El id va en la URL.
+  updateEvent(id: string, body: UpdateEventRequest): Observable<CreatedResponse> {
+    return this.http.put<CreatedResponse>(`${this.base}/api/events/${id}`, body);
   }
 
   cancelEvent(eventId: string): Observable<unknown> {

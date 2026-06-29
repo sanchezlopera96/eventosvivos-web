@@ -69,14 +69,20 @@
       } @else {
         <ul class="event-list">
           @for (ev of events(); track ev.id) {
-            <li (click)="selectReport(ev)" class="event-row">
+            <li class="event-row">
               <div class="info">
                 <strong>{{ ev.title }}</strong>
                 <span class="meta">{{ typeLabel(ev.type) }} · {{ venueName(ev.venueId) }}</span>
+                <span class="meta">{{ ev.availableSeats }}/{{ ev.capacity }} disponibles</span>
               </div>
-              <div class="seats">
-                <span>{{ ev.availableSeats }}/{{ ev.capacity }}</span>
-                <mat-icon>chevron_right</mat-icon>
+              <div class="row-actions">
+                <button mat-icon-button title="Ver ocupación" (click)="selectReport(ev)">
+                  <mat-icon>bar_chart</mat-icon>
+                </button>
+                <button mat-icon-button title="Editar evento"
+                        [disabled]="!isActive(ev)" (click)="openEditModal(ev)">
+                  <mat-icon>edit</mat-icon>
+                </button>
               </div>
             </li>
           }
@@ -106,16 +112,16 @@
   </div>
 }
 
-<!-- Modal: crear evento -->
+<!-- Modal: crear / editar evento -->
 @if (modalOpen()) {
   <div class="overlay" (click)="closeModal()">
     <div class="dialog dialog-form" (click)="$event.stopPropagation()">
       <div class="dialog-head">
-        <h3>Crear evento</h3>
+        <h3>{{ isEditing() ? 'Editar evento' : 'Crear evento' }}</h3>
         <button mat-icon-button (click)="closeModal()"><mat-icon>close</mat-icon></button>
       </div>
 
-      <form [formGroup]="eventForm" (ngSubmit)="createEvent()">
+      <form [formGroup]="eventForm" (ngSubmit)="saveEvent()">
         <mat-form-field appearance="outline">
           <mat-label>Título</mat-label>
           <input matInput formControlName="title">
@@ -154,7 +160,7 @@
               <mat-error>No puede superar el aforo de la sede ({{ maxCapacity() }}).</mat-error>
             }
             @if (eventForm.controls.capacity.hasError('min')) {
-              <mat-error>Debe ser al menos 1.</mat-error>
+              <mat-error>Debe ser al menos {{ minCapacity() }} (entradas ya vendidas).</mat-error>
             }
           </mat-form-field>
           <mat-form-field appearance="outline">
@@ -209,8 +215,12 @@
 
         <div class="dialog-actions">
           <button mat-stroked-button type="button" (click)="closeModal()">Cancelar</button>
-          <button mat-flat-button color="primary" type="submit" [disabled]="creating()">
-            @if (creating()) { Creando… } @else { Crear evento }
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              {{ isEditing() ? 'Guardando…' : 'Creando…' }}
+            } @else {
+              {{ isEditing() ? 'Guardar cambios' : 'Crear evento' }}
+            }
           </button>
         </div>
       </form>

@@ -125,3 +125,5 @@ export const VENUE_CAPACITIES: Record<number, number> = {
   2: 50,
   3: 500,
 };
+
+export type UpdateEventRequest = CreateEventRequest;

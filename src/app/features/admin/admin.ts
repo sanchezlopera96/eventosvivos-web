@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
@@ -30,6 +30,14 @@ function combineDateTime(date: Date | null, time: string | null): Date | null {
   const d = new Date(date);
   d.setHours(h, m, 0, 0);
   return d;
+}
+
+// Redondea una hora ("HH:mm") al slot de 30 min mas cercano hacia abajo,
+// para que coincida con alguna de las opciones del desplegable.
+function toTimeOption(d: Date): string {
+  const h = d.getHours().toString().padStart(2, '0');
+  const m = d.getMinutes() < 30 ? '00' : '30';
+  return `${h}:${m}`;
 }
 
 // Validador de grupo: la fecha/hora de fin debe ser posterior a la de inicio.
@@ -80,10 +88,17 @@ export class AdminComponent implements OnInit {
   // Aforo de la sede seleccionada (limita la capacidad del evento).
   readonly maxCapacity = signal<number>(VENUE_CAPACITIES[1]);
 
-  // --- Modal crear evento ---
+  // --- Modal crear / editar evento ---
   readonly modalOpen = signal(false);
-  readonly creating = signal(false);
+  readonly saving = signal(false);
   readonly createMsg = signal<Msg>(null);
+  // Si hay id => estamos editando ese evento; si es null => creando.
+  readonly editingId = signal<string | null>(null);
+  readonly isEditing = computed(() => this.editingId() !== null);
+  // Si el evento que se edita ya tiene plazas vendidas, no se puede bajar
+  // la capacidad por debajo de ese minimo (regla del backend, replicada en UI).
+  readonly minCapacity = signal<number>(1);
+
   readonly eventForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
     description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
@@ -115,12 +130,23 @@ export class AdminComponent implements OnInit {
     this.eventForm.controls.venueId.valueChanges.subscribe((venueId) => {
       const aforo = VENUE_CAPACITIES[venueId] ?? 1;
       this.maxCapacity.set(aforo);
-      this.eventForm.controls.capacity.setValidators([
-        Validators.required, Validators.min(1), Validators.max(aforo),
-      ]);
-      this.eventForm.controls.capacity.setValue(aforo);
+      this.applyCapacityValidators();
+      // Solo autocompleta el aforo al crear; al editar respeta el valor cargado.
+      if (!this.isEditing()) {
+        this.eventForm.controls.capacity.setValue(aforo);
+      }
       this.eventForm.controls.capacity.updateValueAndValidity();
     });
+  }
+
+  // Recalcula los validadores de capacidad segun el aforo y el minimo vendido.
+  private applyCapacityValidators(): void {
+    this.eventForm.controls.capacity.setValidators([
+      Validators.required,
+      Validators.min(this.minCapacity()),
+      Validators.max(this.maxCapacity()),
+    ]);
+    this.eventForm.controls.capacity.updateValueAndValidity({ emitEvent: false });
   }
 
   logout(): void {
@@ -132,6 +158,7 @@ export class AdminComponent implements OnInit {
   typeLabel(t: number): string { return EVENT_TYPE_LABELS[t] ?? 'Evento'; }
   statusLabel(s: number): string { return RESERVATION_STATUS_LABELS[s] ?? ''; }
   venueName(v: number): string { return VENUES[v] ?? `Sede ${v}`; }
+  isActive(ev: EventListItem): boolean { return ev.status === 0; }
 
   // --- Eventos / reporte ---
   loadEvents(): void {
@@ -184,24 +211,73 @@ export class AdminComponent implements OnInit {
 
   // --- Modal crear evento ---
   openModal(): void {
+    this.editingId.set(null);
+    this.minCapacity.set(1);
     this.createMsg.set(null);
+    this.maxCapacity.set(VENUE_CAPACITIES[1]);
+    this.eventForm.reset({
+      venueId: 1, capacity: VENUE_CAPACITIES[1], price: 50000, type: 2,
+      title: '', description: '',
+      startDate: null, startTime: '19:00', endDate: null, endTime: '21:00',
+    });
+    this.applyCapacityValidators();
     this.modalOpen.set(true);
   }
-  closeModal(): void {
-    this.modalOpen.set(false);
+
+  // --- Modal editar evento ---
+  openEditModal(ev: EventListItem): void {
+    this.createMsg.set(null);
+    this.editingId.set(ev.id);
+    // Carga el detalle (necesitamos la descripcion completa, que la lista no trae).
+    this.api.getEvent(ev.id).subscribe({
+      next: (detail) => {
+        const starts = new Date(detail.startsAt);
+        const ends = new Date(detail.endsAt);
+        const aforo = VENUE_CAPACITIES[detail.venueId] ?? detail.capacity;
+        this.maxCapacity.set(aforo);
+        // Plazas ya vendidas: la capacidad no puede bajar de ahi.
+        const sold = detail.capacity - detail.availableSeats;
+        this.minCapacity.set(Math.max(1, sold));
+
+        this.eventForm.reset({
+          title: detail.title,
+          description: detail.description,
+          venueId: detail.venueId,
+          capacity: detail.capacity,
+          startDate: starts,
+          startTime: toTimeOption(starts),
+          endDate: ends,
+          endTime: toTimeOption(ends),
+          price: detail.price,
+          type: detail.type,
+        });
+        this.applyCapacityValidators();
+        this.modalOpen.set(true);
+      },
+      error: (err) => {
+        this.editingId.set(null);
+        this.pendingMsg.set({ kind: 'err', text: this.msg(err, 'No se pudo cargar el evento.') });
+      },
+    });
   }
 
-  createEvent(): void {
+  closeModal(): void {
+    this.modalOpen.set(false);
+    this.editingId.set(null);
+  }
+
+  // Crea o edita segun el modo del modal.
+  saveEvent(): void {
     if (this.eventForm.invalid) { this.eventForm.markAllAsTouched(); return; }
-    this.creating.set(true);
+    this.saving.set(true);
     this.createMsg.set(null);
     const v = this.eventForm.getRawValue();
 
     const starts = combineDateTime(v.startDate, v.startTime);
     const ends = combineDateTime(v.endDate, v.endTime);
-    if (!starts || !ends) { this.creating.set(false); return; }
+    if (!starts || !ends) { this.saving.set(false); return; }
 
-    this.api.createEvent({
+    const body = {
       title: v.title.trim(),
       description: v.description.trim(),
       venueId: v.venueId,
@@ -210,20 +286,24 @@ export class AdminComponent implements OnInit {
       endsAt: ends.toISOString(),
       price: v.price,
       type: v.type,
-    }).subscribe({
+    };
+
+    const id = this.editingId();
+    const request$ = id
+      ? this.api.updateEvent(id, body)
+      : this.api.createEvent(body);
+
+    request$.subscribe({
       next: () => {
-        this.creating.set(false);
+        this.saving.set(false);
         this.modalOpen.set(false);
-        this.eventForm.reset({
-          venueId: 1, capacity: VENUE_CAPACITIES[1], price: 50000, type: 2,
-          title: '', description: '',
-          startDate: null, startTime: '19:00', endDate: null, endTime: '21:00',
-        });
+        this.editingId.set(null);
         this.loadEvents();
       },
       error: (err) => {
-        this.createMsg.set({ kind: 'err', text: this.msg(err, 'No se pudo crear el evento.') });
-        this.creating.set(false);
+        const fallback = id ? 'No se pudo editar el evento.' : 'No se pudo crear el evento.';
+        this.createMsg.set({ kind: 'err', text: this.msg(err, fallback) });
+        this.saving.set(false);
       },
     });
   }
