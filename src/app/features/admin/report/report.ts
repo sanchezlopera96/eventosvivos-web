@@ -41,6 +41,8 @@ export class ReportComponent implements OnInit {
     this.reports().reduce((s, r) => s + r.capacity, 0));
   readonly totalSold = computed(() =>
     this.reports().reduce((s, r) => s + r.ticketsSold, 0));
+  readonly totalPending = computed(() =>
+    this.reports().reduce((s, r) => s + r.pendingSeats, 0));
   readonly totalRevenue = computed(() =>
     this.reports().reduce((s, r) => s + r.totalRevenue, 0));
   readonly avgOccupancy = computed(() => {
@@ -56,6 +58,7 @@ export class ReportComponent implements OnInit {
         title: r.title,
         pct: Math.round(r.occupancyPercentage),
         sold: r.ticketsSold,
+        pending: r.pendingSeats,
         capacity: r.capacity,
         status: r.status,
       })));

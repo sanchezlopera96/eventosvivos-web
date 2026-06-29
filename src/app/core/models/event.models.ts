@@ -76,6 +76,7 @@ export interface OccupancyReport {
   occupancyPercentage: number;
   totalRevenue: number;
   status: number;
+  pendingSeats: number;
 }
 
 // --- Comandos (cuerpos de las peticiones) ---

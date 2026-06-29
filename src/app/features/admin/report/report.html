@@ -28,6 +28,11 @@
         <span class="stat-sub">de {{ totalCapacity() | number }} disponibles</span>
       </div>
       <div class="stat">
+        <span class="stat-label">Pendientes (bloqueadas)</span>
+        <span class="stat-value">{{ totalPending() | number }}</span>
+        <span class="stat-sub">reservas sin pagar que ocupan cupo</span>
+      </div>
+      <div class="stat">
         <span class="stat-label">Ingresos totales</span>
         <span class="stat-value">{{ totalRevenue() | currency:'COP':'symbol':'1.0-0' }}</span>
       </div>
@@ -54,6 +59,9 @@
               </div>
               <span class="bar-meta">
                 {{ b.sold }} / {{ b.capacity }} entradas
+                @if (b.pending > 0) {
+                  · <span class="bar-pending">{{ b.pending }} pendientes</span>
+                }
                 · <span class="ev-status" [attr.data-status]="b.status">{{ eventStatusLabel(b.status) }}</span>
               </span>
             </li>
