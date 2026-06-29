@@ -95,3 +95,11 @@
   .grid { grid-template-columns: 1fr; }
   .row { flex-direction: column; gap: 2px; }
 }
+
+.head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.report-gauge { display: flex; justify-content: center; margin: 4px 0 18px; }
+
+.ev-status { font-weight: 600; }
+.ev-status[data-status="0"] { color: var(--ev-primary); }
+.ev-status[data-status="1"] { color: var(--ev-danger); }
+.ev-status[data-status="2"] { color: var(--ev-text-dim); }

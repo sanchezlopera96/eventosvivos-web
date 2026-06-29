@@ -11,7 +11,9 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 
 import { EventApiService } from '../../core/services/event-api.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { GaugeComponent } from '../../shared/gauge/gauge';
 import {
+  EVENT_STATUS_LABELS,
   EVENT_TYPE_LABELS,
   EventListItem,
   OccupancyReport,
@@ -53,7 +55,7 @@ const endsAfterStartsValidator: ValidatorFn = (group: AbstractControl) => {
   imports: [
     RouterLink, CurrencyPipe, DatePipe, ReactiveFormsModule,
     MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatIconModule,
-    MatDatepickerModule,
+    MatDatepickerModule, GaugeComponent,
   ],
   templateUrl: './admin.html',
   styleUrl: './admin.scss',
@@ -157,6 +159,7 @@ export class AdminComponent implements OnInit {
   // --- Labels ---
   typeLabel(t: number): string { return EVENT_TYPE_LABELS[t] ?? 'Evento'; }
   statusLabel(s: number): string { return RESERVATION_STATUS_LABELS[s] ?? ''; }
+  eventStatusLabel(s: number): string { return EVENT_STATUS_LABELS[s] ?? ''; }
   venueName(v: number): string { return VENUES[v] ?? `Sede ${v}`; }
   isActive(ev: EventListItem): boolean { return ev.status === 0; }
 
@@ -300,7 +303,7 @@ export class AdminComponent implements OnInit {
         this.editingId.set(null);
         this.loadEvents();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         const fallback = id ? 'No se pudo editar el evento.' : 'No se pudo crear el evento.';
         this.createMsg.set({ kind: 'err', text: this.msg(err, fallback) });
         this.saving.set(false);

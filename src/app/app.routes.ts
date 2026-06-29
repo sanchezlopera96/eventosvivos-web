@@ -33,5 +33,12 @@ export const routes: Routes = [
       import('./features/admin/admin').then((m) => m.AdminComponent),
     title: 'EventosVivos — Administración',
   },
+  {
+    path: 'admin/reporte',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./features/admin/report/report').then((m) => m.ReportComponent),
+    title: 'EventosVivos — Reporte',
+  },
   { path: '**', redirectTo: '' },
 ];

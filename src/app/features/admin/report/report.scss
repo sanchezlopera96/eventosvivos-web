@@ -1,0 +1,83 @@
+:host { display: block; padding: 32px 0 64px; }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.back { display: inline-flex; align-items: center; gap: 6px; color: var(--ev-text-dim); font-size: 0.92rem; }
+.back:hover { color: var(--ev-primary); text-decoration: none; }
+.back mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+.head { margin-bottom: 28px; }
+.head h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); color: var(--ev-text); }
+.head p { color: var(--ev-text-dim); margin-top: 8px; }
+
+.muted { color: var(--ev-text-faint); font-size: 0.9rem; }
+.msg { font-size: 0.9rem; padding: 12px 14px; border-radius: var(--ev-radius-sm); display: flex; align-items: center; gap: 12px; }
+.msg.err { background: rgba(255, 107, 107, 0.12); color: var(--ev-danger); }
+
+/* Totales */
+.totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat {
+  background: var(--ev-surface);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius);
+  padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.stat-label { color: var(--ev-text-faint); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.stat-value { color: var(--ev-text); font-size: 1.5rem; font-weight: 700; font-family: var(--ev-font-display); }
+.stat-sub { color: var(--ev-text-dim); font-size: 0.82rem; }
+.stat-gauge { align-items: center; justify-content: center; }
+.stat-gauge .stat-label { align-self: flex-start; }
+
+/* Layout de gráficos */
+.charts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start; }
+.panel {
+  background: var(--ev-surface);
+  border: 1px solid var(--ev-border);
+  border-radius: var(--ev-radius);
+  padding: 24px;
+}
+.panel h2 { font-size: 1.2rem; color: var(--ev-text); margin-bottom: 18px; }
+
+/* Barras */
+.bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.bar-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.bar-title { color: var(--ev-text); font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-pct { color: var(--ev-primary); font-weight: 600; font-size: 0.92rem; white-space: nowrap; }
+.bar-track { height: 10px; border-radius: 999px; background: var(--ev-surface-2); overflow: hidden; }
+.bar-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--ev-primary-strong), var(--ev-primary));
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.bar-fill.mid { background: linear-gradient(90deg, var(--ev-primary-strong), var(--ev-primary-soft)); }
+.bar-fill.high { background: linear-gradient(90deg, #e0556b, var(--ev-danger)); }
+.bar-meta { display: block; margin-top: 5px; color: var(--ev-text-faint); font-size: 0.78rem; }
+
+/* Badge de estado del evento (RF-06) */
+.ev-status {
+  font-weight: 600;
+  font-size: 0.76rem;
+}
+.ev-status[data-status="0"] { color: var(--ev-primary); }   /* Activo */
+.ev-status[data-status="1"] { color: var(--ev-danger); }    /* Cancelado */
+.ev-status[data-status="2"] { color: var(--ev-text-dim); }  /* Completado */
+
+/* Dona */
+.donut-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.donut { flex-shrink: 0; }
+.donut circle { transition: stroke-dasharray 0.8s ease; }
+.donut-center { fill: var(--ev-text); font-family: var(--ev-font-display); font-weight: 600; font-size: 0.72rem; }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 160px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+.legend .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.leg-title { color: var(--ev-text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.leg-val { color: var(--ev-text); font-weight: 600; white-space: nowrap; }
+
+@media (max-width: 860px) {
+  .charts { grid-template-columns: 1fr; }
+}

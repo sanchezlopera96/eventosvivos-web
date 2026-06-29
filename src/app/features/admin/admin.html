@@ -8,9 +8,14 @@
       <h1>Panel de administración</h1>
       <p>Gestiona eventos y confirma pagos de reservas.</p>
     </div>
-    <button mat-flat-button color="primary" (click)="openModal()">
-      <mat-icon>add</mat-icon> Crear evento
-    </button>
+    <div class="head-actions">
+      <a mat-stroked-button routerLink="/admin/reporte">
+        <mat-icon>insights</mat-icon> Ver reporte
+      </a>
+      <button mat-flat-button color="primary" (click)="openModal()">
+        <mat-icon>add</mat-icon> Crear evento
+      </button>
+    </div>
   </header>
 
   <div class="grid">
@@ -97,14 +102,17 @@
         <h3>{{ r.title }}</h3>
         <button mat-icon-button (click)="closeReport()"><mat-icon>close</mat-icon></button>
       </div>
+      <div class="report-gauge">
+        <app-gauge [value]="r.occupancyPercentage" [size]="130" [stroke]="14"></app-gauge>
+      </div>
       <dl class="report">
         <div><dt>Capacidad</dt><dd>{{ r.capacity }}</dd></div>
         <div><dt>Vendidas</dt><dd>{{ r.ticketsSold }}</dd></div>
         <div><dt>Disponibles</dt><dd>{{ r.availableSeats }}</dd></div>
         <div><dt>Ocupación</dt><dd>{{ r.occupancyPercentage }}%</dd></div>
         <div><dt>Ingresos</dt><dd>{{ r.totalRevenue | currency:'COP':'symbol':'1.0-0' }}</dd></div>
+        <div><dt>Estado</dt><dd><span class="ev-status" [attr.data-status]="r.status">{{ eventStatusLabel(r.status) }}</span></dd></div>
       </dl>
-      <div class="occ-bar"><div class="occ-fill" [style.width.%]="r.occupancyPercentage"></div></div>
     </div>
   </div>
 }
