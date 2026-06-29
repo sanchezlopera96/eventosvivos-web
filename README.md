@@ -1,59 +1,181 @@
-# EventosvivosWeb
+# EventosVivos · Web (SPA)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.4.
+Aplicación web (_Single Page Application_) para EventosVivos: catálogo de eventos culturales, reserva y gestión de entradas, y panel de administración con reportes. Es el frontend de la prueba técnica EventosVivos (.NET + Angular) y consume la [API REST de EventosVivos](https://github.com/sanchezlopera96/eventosvivos-api).
 
-## Development server
+## Enlaces de producción
 
-To start a local development server, run:
+| Recurso | URL |
+|---------|-----|
+| **Frontend (esta app)** | https://nice-tree-0da071c10.7.azurestaticapps.net |
+| **API (base)** | https://eventosvivos-api-ceiba-bse2accpaub5htgs.centralus-01.azurewebsites.net |
+| **Swagger / OpenAPI** | https://eventosvivos-api-ceiba-bse2accpaub5htgs.centralus-01.azurewebsites.net/swagger/index.html |
+| **Repositorio del backend** | https://github.com/sanchezlopera96/eventosvivos-api |
+
+---
+
+## Tabla de contenido
+
+- [Descripción](#descripción)
+- [Tecnologías](#tecnologías)
+- [Funcionalidades](#funcionalidades)
+- [Arquitectura del frontend](#arquitectura-del-frontend)
+- [Estructura de carpetas](#estructura-de-carpetas)
+- [Requisitos](#requisitos)
+- [Instalación y ejecución local](#instalación-y-ejecución-local)
+- [Conexión con la API](#conexión-con-la-api)
+- [Build de producción](#build-de-producción)
+- [Acceso de administración](#acceso-de-administración)
+- [Despliegue (Azure Static Web Apps)](#despliegue-azure-static-web-apps)
+- [Decisiones de diseño](#decisiones-de-diseño)
+- [Autor](#autor)
+- [Licencia](#licencia)
+
+---
+
+## Descripción
+
+EventosVivos Web es la interfaz de usuario del sistema de reserva de entradas. Permite al **público** explorar el catálogo de eventos, ver su detalle y disponibilidad, reservar entradas y gestionar (consultar y cancelar) sus reservas a partir de su correo. Al **administrador** le ofrece un panel autenticado para crear, editar y cancelar eventos, confirmar pagos pendientes y consultar reportes de ocupación e ingresos con gráficos.
+
+La aplicación es una SPA en Angular que consume la API REST de EventosVivos. Toda la lógica de negocio (control de aforo, reglas de calendario, penalizaciones) vive en el backend; el frontend se concentra en una experiencia de uso clara, validación de formularios y presentación de la información.
+
+## Tecnologías
+
+- **Angular 22** (componentes _standalone_, sin NgModules)
+- **TypeScript** en modo estricto
+- **Signals** para estado reactivo
+- **Angular Material 3** (formularios, datepicker, diálogos, iconos)
+- **Reactive Forms** con validadores personalizados
+- **RxJS** para la comunicación con la API
+- **SCSS** con sistema de _design tokens_ propio (variables `--ev-*`)
+- **Gráficos SVG propios** (gauge y barras/donut, sin librería externa)
+- **Azure Static Web Apps** + **GitHub Actions** — hosting y CI/CD
+
+## Funcionalidades
+
+**Público**
+- Catálogo de eventos con filtros (tipo, sede, estado, fechas, título).
+- Detalle de evento con disponibilidad en tiempo real.
+- Reserva de entradas (nombre + correo, sin necesidad de cuenta).
+- Gestión de reservas: búsqueda por correo y cancelación.
+
+**Administración** (requiere inicio de sesión)
+- Login de administrador (JWT).
+- Crear, **editar** y cancelar eventos (formulario reutilizable con validación).
+- Confirmar pagos de reservas pendientes.
+- Reporte de ocupación por evento (modal con _gauge_) y **vista global** de reporte (`/admin/reporte`) con totales, barras de ocupación por evento y _donut_ de ingresos.
+
+## Arquitectura del frontend
+
+Organización por **features** con una capa _core_ compartida:
+
+- **core/** — lo transversal: autenticación (servicio, _guard_ de rutas e _interceptor_ que adjunta el JWT), modelos/DTOs que reflejan los contratos de la API, y el `EventApiService` (única puerta de entrada a la API).
+- **features/** — cada área funcional con sus componentes _standalone_: `events` (listado y detalle), `reservations` (gestión), `admin` (login, panel y reporte).
+- **shared/** — componentes reutilizables de presentación: `navbar`, `footer` y `gauge` (medidor circular SVG).
+
+Las rutas usan _lazy loading_ (`loadComponent`) y las de administración están protegidas por `adminGuard`.
+
+## Estructura de carpetas
+
+```text
+src/
+├── app/
+│   ├── core/
+│   │   ├── auth/             # auth.service, admin.guard, auth.interceptor
+│   │   ├── models/           # event.models.ts (DTOs y enums de la API)
+│   │   └── services/         # event-api.service.ts
+│   ├── features/
+│   │   ├── events/           # events-list, event-detail
+│   │   ├── reservations/     # reservation-manage
+│   │   └── admin/            # admin-login, admin (panel), report/
+│   ├── shared/
+│   │   ├── navbar/           # barra superior + logo
+│   │   ├── footer/           # pie de página
+│   │   └── gauge/            # medidor circular SVG reutilizable
+│   ├── app.ts                # componente raíz (shell)
+│   ├── app.config.ts         # providers (router, http, animaciones, locale es-CO)
+│   └── app.routes.ts         # rutas (con lazy loading y guard de admin)
+├── environments/
+│   ├── environment.ts        # apiBaseUrl (apunta a la API de Azure por defecto)
+│   └── environment.prod.ts
+├── public/                   # assets estáticos (favicon SVG, etc.)
+└── main.ts
+```
+
+## Requisitos
+
+- **Node.js 24** (LTS) — Angular 22 requiere Node ≥ 22.22.3 / 24.15 / 26
+- **npm 10+**
+- **Angular CLI 22** (`npm install -g @angular/cli`)
+
+## Instalación y ejecución local
+
+### Clonar el repositorio
+
+```bash
+git clone https://github.com/sanchezlopera96/eventosvivos-web.git
+cd eventosvivos-web
+```
+
+### Instalar dependencias
+
+```bash
+npm install
+```
+
+### Ejecutar en desarrollo
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+La app queda en `http://localhost:4200`. Por defecto consume la **API desplegada en Azure**, así que funciona de inmediato sin levantar el backend.
 
-## Code scaffolding
+## Conexión con la API
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+La URL de la API se configura en `src/environments/environment.ts`:
 
-```bash
-ng generate component component-name
+```ts
+export const environment = {
+  production: false,
+  apiBaseUrl:
+    'https://eventosvivos-api-ceiba-bse2accpaub5htgs.centralus-01.azurewebsites.net',
+};
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Para desarrollar contra la **API local** (ver el [repositorio del backend](https://github.com/sanchezlopera96/eventosvivos-api)), cambia `apiBaseUrl` por el puerto que muestre `dotnet run` (por ejemplo `http://localhost:5xxx`). Recuerda que el backend debe permitir el origen `http://localhost:4200` en su configuración de CORS.
 
-```bash
-ng generate --help
-```
+El `auth.interceptor` adjunta automáticamente el token JWT a las peticiones de administración; el `EventApiService` centraliza todas las llamadas a la API.
 
-## Building
-
-To build the project run:
+## Build de producción
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+El resultado se genera en `dist/eventosvivos-web/browser/`, listo para servir como sitio estático.
 
-## Running unit tests
+## Acceso de administración
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+La sección de administración (`/admin`) requiere iniciar sesión en `/admin/login` con las credenciales de administrador. El backend valida usuario y contraseña y emite un JWT; el frontend lo almacena y lo adjunta a las peticiones protegidas. Las rutas de administración están protegidas por `adminGuard`, que redirige al login si no hay sesión válida.
 
-```bash
-ng test
-```
+## Despliegue (Azure Static Web Apps)
 
-## Running end-to-end tests
+- Hospedado en **Azure Static Web Apps** (plan Free), con **CI/CD por GitHub Actions**: cada push a `main` compila la app y la publica.
+- El workflow instala **Node 24**, ejecuta `npm ci` y `ng build`, y despliega el contenido de `dist/eventosvivos-web/browser`.
+- El dominio del sitio está autorizado en la configuración de **CORS** del backend para permitir las llamadas a la API.
 
-For end-to-end (e2e) testing, run:
+## Decisiones de diseño
 
-```bash
-ng e2e
-```
+- **Componentes standalone + signals**: se adopta el modelo moderno de Angular (sin NgModules), con señales para el estado reactivo y _lazy loading_ por ruta.
+- **Gráficos SVG propios en vez de librería**: para el reporte (gauge, barras y donut) se descartó una librería de _charts_ por incompatibilidad de versiones con Angular 22 y para evitar una dependencia pesada. Los gráficos se dibujan en SVG con las variables del tema, lo que da control total del diseño y cero dependencias.
+- **Sistema de design tokens (`--ev-*`)**: paleta y tipografía centralizadas en variables CSS para mantener coherencia visual (tema verde/teal, tipografías Space Grotesk + Inter).
+- **Locale es-CO**: fechas y moneda (COP) formateadas para Colombia.
+- **El frontend no replica reglas de negocio**: la validación de formulario mejora la experiencia, pero la autoridad sobre el aforo y las reglas está en el backend; el frontend refleja sus respuestas (incluidos los errores 422/404/401).
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Autor
 
-## Additional Resources
+**sanchezlopera96** — [GitHub](https://github.com/sanchezlopera96)
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Licencia
+
+Proyecto desarrollado como prueba técnica. Licencia no especificada.
