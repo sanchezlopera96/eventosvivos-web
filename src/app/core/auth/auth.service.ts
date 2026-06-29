@@ -14,7 +14,8 @@ const EXPIRES_KEY = 'ev_admin_expires';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly base = environment.apiBaseUrl;
+  // Ruta de login centralizada en environment.api (ver environments/environment.ts).
+  private readonly loginUrl = environment.api.login;
 
   // Estado reactivo del token (inicializado desde sessionStorage).
   private readonly token = signal<string | null>(this.readToken());
@@ -29,7 +30,7 @@ export class AuthService {
 
   login(username: string, password: string): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${this.base}/api/auth/login`, { username, password })
+      .post<LoginResponse>(this.loginUrl, { username, password })
       .pipe(tap((res) => this.store(res.token, res.expiresAt)));
   }
 
