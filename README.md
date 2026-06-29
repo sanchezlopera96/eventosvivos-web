@@ -24,6 +24,7 @@ Aplicación web (_Single Page Application_) para EventosVivos: catálogo de even
 - [Instalación y ejecución local](#instalación-y-ejecución-local)
 - [Conexión con la API](#conexión-con-la-api)
 - [Build de producción](#build-de-producción)
+- [Pruebas automatizadas](#pruebas-automatizadas)
 - [Acceso de administración](#acceso-de-administración)
 - [Despliegue (Azure Static Web Apps)](#despliegue-azure-static-web-apps)
 - [Decisiones de diseño](#decisiones-de-diseño)
@@ -153,6 +154,22 @@ ng build
 ```
 
 El resultado se genera en `dist/eventosvivos-web/browser/`, listo para servir como sitio estático.
+
+## Pruebas automatizadas
+
+Las pruebas usan **Vitest** (runner por defecto de Angular 22) con el entorno de pruebas de Angular (`TestBed`) y `HttpTestingController` para las llamadas HTTP.
+
+```bash
+ng test --watch=false
+```
+
+Cobertura actual (27 pruebas):
+
+- **EventApiService** — verifica que cada método llama a la URL y verbo correctos, con los _query params_ y el _body_ esperados (listar/ver/editar eventos, ocupación, reservas, búsqueda por correo, confirmación de pago…).
+- **AuthService** — login (guarda el token), logout (limpia la sesión) y expiración del token.
+- **adminGuard** — permite el acceso con sesión válida y redirige a `/admin/login` (conservando `returnUrl`) cuando no la hay.
+- **authInterceptor** — adjunta `Authorization: Bearer` cuando hay token, y lo omite en el login y cuando no hay token.
+- **App (shell)** — el componente raíz se crea y monta la navegación.
 
 ## Acceso de administración
 
