@@ -6,14 +6,12 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--ev-border);
 }
-
 .nav-inner {
   display: flex;
   align-items: center;
   gap: 28px;
   height: 60px;
 }
-
 .brand {
   display: inline-flex;
   align-items: center;
@@ -25,12 +23,10 @@
   letter-spacing: -0.01em;
 }
 .brand:hover { text-decoration: none; color: var(--ev-text); }
-.brand .dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--ev-primary);
-  box-shadow: 0 0 12px var(--ev-primary);
+.brand .logo {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(78, 204, 163, 0.35));
 }
-
 .links {
   display: flex;
   gap: 22px;
@@ -48,7 +44,6 @@
   color: var(--ev-primary);
   border-bottom-color: var(--ev-primary);
 }
-
 .session {
   display: flex;
   align-items: center;
@@ -62,7 +57,6 @@
   color: var(--ev-primary-soft);
 }
 .badge mat-icon { font-size: 17px; width: 17px; height: 17px; }
-
 @media (max-width: 640px) {
   .nav-inner { gap: 14px; height: auto; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
   .links { gap: 14px; order: 3; flex-basis: 100%; }

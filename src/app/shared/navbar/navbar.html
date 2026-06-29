@@ -1,17 +1,28 @@
 <nav class="navbar">
   <div class="ev-container nav-inner">
-    <a routerLink="/" class="brand">
-      <span class="dot"></span>
-      EventosVivos
+    <a routerLink="/" class="brand" aria-label="EventosVivos — inicio">
+      <svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+        <!-- Nucleo: el punto "en vivo" -->
+        <circle cx="9" cy="16" r="3.2" fill="var(--ev-primary)" />
+        <!-- Ondas que emanan del nucleo (senal en directo) -->
+        <path d="M15 10.5a8 8 0 0 1 0 11"
+              fill="none" stroke="var(--ev-primary)" stroke-width="2.4"
+              stroke-linecap="round" opacity="0.85" />
+        <path d="M20 7a13 13 0 0 1 0 18"
+              fill="none" stroke="var(--ev-primary-soft)" stroke-width="2.4"
+              stroke-linecap="round" opacity="0.5" />
+        <path d="M25 3.5a18 18 0 0 1 0 25"
+              fill="none" stroke="var(--ev-primary-soft)" stroke-width="2.4"
+              stroke-linecap="round" opacity="0.25" />
+      </svg>
+      <span class="brand-text">EventosVivos</span>
     </a>
-
     <div class="links">
       <a routerLink="/" routerLinkActive="active"
          [routerLinkActiveOptions]="{ exact: true }">Eventos</a>
       <a routerLink="/reservations/manage" routerLinkActive="active">Gestionar reserva</a>
       <a routerLink="/admin" routerLinkActive="active">Administración</a>
     </div>
-
     <div class="session">
       @if (isAuthenticated()) {
         <span class="badge"><mat-icon>shield_person</mat-icon> Admin</span>
