@@ -85,6 +85,10 @@
                         [disabled]="!isActive(ev)" (click)="openEditModal(ev)">
                   <mat-icon>edit</mat-icon>
                 </button>
+                <button mat-icon-button title="Cancelar evento" class="danger"
+                        [disabled]="!isActive(ev)" (click)="askCancel(ev)">
+                  <mat-icon>cancel</mat-icon>
+                </button>
               </div>
             </li>
           }
@@ -230,6 +234,30 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+<!-- Diálogo: confirmar cancelación de evento -->
+@if (cancelTarget(); as ev) {
+  <div class="overlay" (click)="dismissCancel()">
+    <div class="dialog confirm" (click)="$event.stopPropagation()">
+      <div class="dialog-head">
+        <h3>Cancelar evento</h3>
+        <button mat-icon-button (click)="dismissCancel()"><mat-icon>close</mat-icon></button>
+      </div>
+      <p class="confirm-text">
+        ¿Seguro que quieres cancelar <strong>{{ ev.title }}</strong>?
+        Esta acción es irreversible y cancelará también las reservas asociadas.
+      </p>
+      <div class="confirm-actions">
+        <button mat-stroked-button (click)="dismissCancel()" [disabled]="cancelling()">
+          Volver
+        </button>
+        <button mat-flat-button class="danger" (click)="confirmCancel()" [disabled]="cancelling()">
+          {{ cancelling() ? 'Cancelando…' : 'Sí, cancelar evento' }}
+        </button>
+      </div>
     </div>
   </div>
 }

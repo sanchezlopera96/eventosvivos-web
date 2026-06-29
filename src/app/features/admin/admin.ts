@@ -101,6 +101,11 @@ export class AdminComponent implements OnInit {
   // la capacidad por debajo de ese minimo (regla del backend, replicada en UI).
   readonly minCapacity = signal<number>(1);
 
+  // --- Cancelar evento ---
+  // Evento marcado para cancelar (muestra el dialogo de confirmacion).
+  readonly cancelTarget = signal<EventListItem | null>(null);
+  readonly cancelling = signal(false);
+
   readonly eventForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
     description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
@@ -183,6 +188,36 @@ export class AdminComponent implements OnInit {
 
   closeReport(): void {
     this.selectedReport.set(null);
+  }
+
+  // --- Cancelar evento ---
+  askCancel(ev: EventListItem): void {
+    this.cancelTarget.set(ev);
+  }
+
+  dismissCancel(): void {
+    this.cancelTarget.set(null);
+  }
+
+  confirmCancel(): void {
+    const ev = this.cancelTarget();
+    if (!ev) return;
+    this.cancelling.set(true);
+    this.api.cancelEvent(ev.id).subscribe({
+      next: () => {
+        this.cancelling.set(false);
+        this.cancelTarget.set(null);
+        // El evento pasa a Cancelado y sus reservas se cancelan en cascada:
+        // refrescamos ambas listas.
+        this.loadEvents();
+        this.loadPending();
+      },
+      error: (err) => {
+        this.cancelling.set(false);
+        this.cancelTarget.set(null);
+        this.pendingMsg.set({ kind: 'err', text: this.msg(err, 'No se pudo cancelar el evento.') });
+      },
+    });
   }
 
   // --- Pagos pendientes ---
