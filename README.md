@@ -181,6 +181,13 @@ La sección de administración (`/admin`) requiere iniciar sesión en `/admin/lo
 - El workflow instala **Node 24**, ejecuta `npm ci` y `ng build`, y despliega el contenido de `dist/eventosvivos-web/browser`.
 - El dominio del sitio está autorizado en la configuración de **CORS** del backend para permitir las llamadas a la API.
 
+## Despliegue (AWS k3s)
+
+- La imagen se construye con el `Dockerfile`: compila con `ng build --configuration production,aws` y sirve el resultado con **nginx sin privilegios** (puerto 8080, con fallback SPA en `nginx.conf`).
+- La configuración `aws` reemplaza `environment.ts` por `environment.aws.ts`, que usa **rutas relativas** (`/api/...`): el SPA y la API quedan detrás del mismo ALB y el Ingress envía `/api` a la API, así que no se necesita CORS.
+- El workflow `docker-ghcr.yml` publica la imagen en `ghcr.io/sanchezlopera96/eventosvivos-web` en cada push a `main`.
+- Los manifests de Kubernetes viven en el repositorio de infraestructura (`terraform-basic`, carpeta `k8s/`).
+
 ## Decisiones de diseño
 
 - **Componentes standalone + signals**: se adopta el modelo moderno de Angular (sin NgModules), con señales para el estado reactivo y _lazy loading_ por ruta.
